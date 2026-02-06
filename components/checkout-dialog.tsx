@@ -101,7 +101,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
       const data = await response.json()
 
       if (!data.success) alert("فشل إرسال الطلب: " + (data.error || "خطأ غير معروف"))
-      else alert("تم إرسال الطلب إلى Telegram بنجاح!")
+      alert("تم إرسال طلبك بنجاح، شكرًا على ثقتك 💜🫰🏻")
 
       dispatch({ type: "CLEAR_CART" })
       onOpenChange(false)
