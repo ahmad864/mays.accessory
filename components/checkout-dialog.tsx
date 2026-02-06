@@ -39,11 +39,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
   const { state, dispatch } = useCart()
   const { convertPrice, currency } = useCurrency()
   const [customerInfo, setCustomerInfo] = useState<
-    CustomerInfo & {
-      detailedAddress: string
-      selectedCurrency: string
-      discountCode: string
-    }
+    CustomerInfo & { detailedAddress: string; selectedCurrency: string; discountCode: string }
   >({
     name: "",
     phone: "+963",
@@ -59,7 +55,6 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 
   const validateForm = (): boolean => {
     const newErrors: Partial<CustomerInfo> = {}
-
     if (!customerInfo.name.trim()) newErrors.name = "الاسم مطلوب"
     if (!customerInfo.phone.trim()) newErrors.phone = "رقم الهاتف مطلوب"
     else if (!/^((\+963|00963|0)?9[0-9]{8})$/.test(customerInfo.phone.replace(/\s/g, ""))) {
@@ -73,52 +68,6 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return
-
-    setIsSubmitting(true)
-
-    try {
-      const orderData = {
-        id: Date.now().toString(),
-        items: state.items,
-        customer: customerInfo,
-        total: total,
-        currency: currency,
-        timestamp: new Date().toISOString(),
-        status: "pending",
-      }
-
-      // Save order to localStorage for CallbotMe integration
-      const existingOrders = JSON.parse(localStorage.getItem("pending-orders") || "[]")
-      existingOrders.push(orderData)
-      localStorage.setItem("pending-orders", JSON.stringify(existingOrders))
-
-      // Show success message to customer
-      alert("تم تأكيد طلبك بنجاح! سنتواصل معك قريباً لتأكيد التفاصيل.")
-
-      // Clear cart and close dialog
-      dispatch({ type: "CLEAR_CART" })
-      onOpenChange(false)
-
-      // Reset form
-      setCustomerInfo({
-        name: "",
-        phone: "+963",
-        address: "",
-        city: "",
-        notes: "",
-        detailedAddress: "",
-        selectedCurrency: "USD",
-        discountCode: "",
-      })
-    } catch (error) {
-      alert("حدث خطأ في تأكيد الطلب. يرجى المحاولة مرة أخرى.")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   const selectedCity = syrianCities.find((city) => city.name === customerInfo.city)
   const shippingCost = selectedCity ? selectedCity.shipping : 0
   const subtotal = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -126,14 +75,61 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 
   const getCurrencySymbol = () => {
     switch (currency) {
-      case "USD":
-        return "$"
-      case "SYP":
-        return "ل.س"
-      case "TRY":
-        return "₺"
-      default:
-        return "$"
+      case "USD": return "$"
+      case "SYP": return "ل.س"
+      case "TRY": return "₺"
+      default: return "$"
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return
+    setIsSubmitting(true)
+
+    const orderData = {
+      id: Date.now().toString(),
+      items: state.items,
+      customerInfo,
+      total,
+      currency,
+      timestamp: new Date().toISOString(),
+      status: "pending",
+    }
+
+    try {
+      // إرسال الطلب إلى API (واتساب / Telegram)
+      const response = await fetch("/api/send-whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        alert("✅ تم إرسال الطلب بنجاح! سنتواصل معك قريباً.")
+        dispatch({ type: "CLEAR_CART" })
+        onOpenChange(false)
+
+        setCustomerInfo({
+          name: "",
+          phone: "+963",
+          address: "",
+          city: "",
+          notes: "",
+          detailedAddress: "",
+          selectedCurrency: "USD",
+          discountCode: "",
+        })
+      } else {
+        alert("❌ فشل إرسال الطلب. يرجى المحاولة مرة أخرى.")
+        console.error("API error:", data)
+      }
+    } catch (error) {
+      console.error("Error submitting order:", error)
+      alert("❌ حدث خطأ في الخادم.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -142,178 +138,22 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ShoppingBag className="h-5 w-5 text-[#7f5c7e]" />
-            إتمام الطلب
+            <ShoppingBag className="h-5 w-5 text-[#7f5c7e]" /> إتمام الطلب
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Customer Information */}
+          {/* Left Column - Customer Info */}
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[#7f5c7e]">معلومات الفاتورة</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  الاسم الكامل *
-                </Label>
-                <Input
-                  id="name"
-                  value={customerInfo.name}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
-                  className={errors.name ? "border-red-500" : ""}
-                  placeholder="أدخل اسمك الكامل"
-                />
-                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  رقم الهاتف *
-                </Label>
-                <Input
-                  id="phone"
-                  value={customerInfo.phone}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
-                  className={errors.phone ? "border-red-500" : ""}
-                  placeholder="+963xxxxxxxxx"
-                  dir="ltr"
-                />
-                {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="city" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  المدينة *
-                </Label>
-                <Select
-                  value={customerInfo.city}
-                  onValueChange={(value) => setCustomerInfo({ ...customerInfo, city: value })}
-                >
-                  <SelectTrigger className={errors.city ? "border-red-500" : ""}>
-                    <SelectValue placeholder="اختر المدينة" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {syrianCities.map((city) => (
-                      <SelectItem key={city.name} value={city.name}>
-                        {city.name} - رسوم الشحن: {convertPrice(city.shipping)} {getCurrencySymbol()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="currency" className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  العملة
-                </Label>
-                <CurrencySelector />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="detailedAddress" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                العنوان التفصيلي *
-              </Label>
-              <Textarea
-                id="detailedAddress"
-                value={customerInfo.detailedAddress}
-                onChange={(e) => setCustomerInfo({ ...customerInfo, detailedAddress: e.target.value })}
-                placeholder="المنطقة، الشارع، رقم المبنى، الطابق..."
-                rows={3}
-                className={!customerInfo.detailedAddress.trim() ? "border-red-500" : ""}
-              />
-              {!customerInfo.detailedAddress.trim() && errors.address && (
-                <p className="text-sm text-red-500">العنوان التفصيلي مطلوب</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="discountCode" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                كود الخصم (اختياري)
-              </Label>
-              <Input
-                id="discountCode"
-                value={customerInfo.discountCode}
-                onChange={(e) => setCustomerInfo({ ...customerInfo, discountCode: e.target.value })}
-                placeholder="أدخل كود الخصم"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                ملاحظات إضافية (اختياري)
-              </Label>
-              <Textarea
-                id="notes"
-                value={customerInfo.notes}
-                onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}
-                placeholder="أي ملاحظات خاصة بالطلب..."
-                rows={3}
-              />
-            </div>
+            {/* ... هنا تضع كل الفورم كما هو بدون تغيير ... */}
           </div>
 
           {/* Right Column - Order Summary */}
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[#7f5c7e]">ملخص الطلب</h3>
-
-            {/* Cart Items */}
-            <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-              {state.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.name}
-                      className="w-12 h-12 rounded object-cover"
-                    />
-                    <div>
-                      <p className="font-medium text-sm">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">الكمية: {item.quantity}</p>
-                    </div>
-                  </div>
-                  <span className="font-semibold">
-                    {convertPrice(item.price * item.quantity)} {getCurrencySymbol()}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Order Totals */}
-            <div className="space-y-3 p-4 bg-[#7f5c7e]/5 rounded-lg">
-              <div className="flex justify-between text-sm">
-                <span>المجموع الفرعي:</span>
-                <span>
-                  {convertPrice(subtotal)} {getCurrencySymbol()}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>رسوم الشحن:</span>
-                <span>
-                  {convertPrice(shippingCost)} {getCurrencySymbol()}
-                </span>
-              </div>
-              <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                <span>الإجمالي:</span>
-                <span className="text-[#7f5c7e]">
-                  {convertPrice(total)} {getCurrencySymbol()}
-                </span>
-              </div>
-            </div>
+            {/* ... ملخص الطلب كما هو ... */}
 
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-                إلغاء
-              </Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">إلغاء</Button>
               <Button onClick={handleSubmit} className="flex-1 bg-[#7f5c7e] hover:bg-[#6d4d6c]" disabled={isSubmitting}>
                 <ShoppingBag className="mr-2 h-4 w-4" />
                 {isSubmitting ? "جاري الإرسال..." : "تأكيد الطلب"}
