@@ -36,6 +36,7 @@ export default function AdminPage() {
     }
   }, [loading, user]);
 
+  // جلب المنتجات
   const fetchProducts = async () => {
     const { data, error } = await supabase
       .from<Product>("products")
@@ -59,12 +60,14 @@ export default function AdminPage() {
 
     let imageUrl: string | null = null;
 
+    // رفع الصورة والحصول على public URL
     if (image) {
       const fileName = `${Date.now()}-${image.name}`;
-      const { data: uploadData, error: uploadError } = await supabase
+
+      const { error: uploadError } = await supabase
         .storage
         .from("products")
-        .upload(fileName, image);
+        .upload(fileName, image, { upsert: true });
 
       if (uploadError) return alert("فشل رفع الصورة: " + uploadError.message);
 
@@ -77,6 +80,7 @@ export default function AdminPage() {
     }
 
     if (editId) {
+      // تعديل المنتج
       const { error } = await supabase
         .from("products")
         .update({
@@ -89,6 +93,7 @@ export default function AdminPage() {
 
       if (error) return alert("فشل تعديل المنتج: " + error.message);
     } else {
+      // إضافة منتج جديد
       if (!imageUrl) return alert("اختر صورة للمنتج");
 
       const { error } = await supabase
