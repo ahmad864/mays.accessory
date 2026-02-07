@@ -21,39 +21,30 @@ export default function AdminPage() {
   const [image, setImage] = useState<File | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // حماية الصفحة + جلب المنتجات بعد التأكد من الجلسة
+  // حماية الصفحة بعد اكتمال التحقق
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.push("/login"); // إعادة توجيه إذا لم يكن أدمن
+        router.push("/login");
       } else {
-        getProducts();
+        fetchProducts();
       }
     }
   }, [loading, user]);
 
-  const getProducts = async () => {
-    const { data } = await supabase
-      .from<Product>("products")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const fetchProducts = async () => {
+    const { data } = await supabase.from<Product>("products").select("*").order("created_at", { ascending: false });
     setProducts(data || []);
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setImage(e.target.files[0]);
-    }
+    if (e.target.files?.[0]) setImage(e.target.files[0]);
   };
 
   const saveProduct = async () => {
-    if (!name || !price) {
-      alert("اكتب اسم وسعر المنتج");
-      return;
-    }
+    if (!name || !price) return alert("اكتب اسم وسعر المنتج");
 
     let imageUrl: string | null = null;
-
     if (image) {
       const fileName = `${Date.now()}-${image.name}`;
       await supabase.storage.from("products").upload(fileName, image);
@@ -62,29 +53,19 @@ export default function AdminPage() {
     }
 
     if (editId) {
-      await supabase
-        .from("products")
-        .update({
-          name,
-          price: Number(price),
-          ...(imageUrl && { image_url: imageUrl }),
-        })
-        .eq("id", editId);
+      await supabase.from("products").update({ name, price: Number(price), ...(imageUrl && { image_url: imageUrl }) }).eq("id", editId);
     } else {
-      if (!imageUrl) {
-        alert("اختر صورة للمنتج");
-        return;
-      }
+      if (!imageUrl) return alert("اختر صورة للمنتج");
       await supabase.from("products").insert([{ name, price: Number(price), image_url: imageUrl }]);
     }
 
     resetForm();
-    getProducts();
+    fetchProducts();
   };
 
   const deleteProduct = async (id: string) => {
     await supabase.from("products").delete().eq("id", id);
-    getProducts();
+    fetchProducts();
   };
 
   const editProduct = (p: Product) => {
@@ -105,25 +86,18 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <h1 className="text-3xl font-bold mb-6 text-[#7f5c7e]">لوحة تحكم الأدمن</h1>
-      {/* نموذج إضافة / تعديل */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold mb-4">{editId ? "تعديل منتج" : "إضافة منتج"}</h2>
-
         <input className="border border-gray-300 rounded p-2 mb-3 w-full" placeholder="اسم المنتج" value={name} onChange={(e) => setName(e.target.value)} />
         <input className="border border-gray-300 rounded p-2 mb-3 w-full" placeholder="سعر المنتج" value={price} onChange={(e) => setPrice(e.target.value)} />
         <input type="file" accept="image/*" onChange={handleFileChange} className="mb-3" />
-
         <div className="flex gap-2">
-          <button className="bg-[#7f5c7e] text-white px-4 py-2 rounded hover:bg-[#6b4c6a]" onClick={saveProduct}>
-            {editId ? "حفظ التعديل" : "إضافة المنتج"}
-          </button>
+          <button className="bg-[#7f5c7e] text-white px-4 py-2 rounded hover:bg-[#6b4c6a]" onClick={saveProduct}>{editId ? "حفظ التعديل" : "إضافة المنتج"}</button>
           {editId && <button className="border border-gray-400 text-gray-700 px-4 py-2 rounded hover:bg-gray-100" onClick={resetForm}>إلغاء</button>}
         </div>
       </div>
-
-      {/* عرض المنتجات */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {products.map((p) => (
+        {products.map(p => (
           <div key={p.id} className="bg-white p-4 rounded shadow-md">
             <img src={p.image_url} alt={p.name} className="w-full h-48 object-cover rounded mb-2" />
             <h3 className="font-semibold text-lg">{p.name}</h3>
