@@ -42,10 +42,7 @@ export default function AdminPage() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.log("Fetch error:", error.message);
-      return;
-    }
+    if (error) return console.log("Fetch error:", error.message);
 
     setProducts(data || []);
   };
@@ -62,10 +59,10 @@ export default function AdminPage() {
     if (image) {
       const fileName = `${Date.now()}-${image.name}`;
 
-      // رفع الصورة
+      // رفع الصورة إلى bucket عام
       const { error: uploadError } = await supabase
         .storage
-        .from("products")
+        .from("products") // تأكد أن هذا اسم bucket
         .upload(fileName, image, { upsert: true });
 
       if (uploadError) return alert("فشل رفع الصورة: " + uploadError.message);
@@ -134,6 +131,7 @@ export default function AdminPage() {
     <div className="min-h-screen p-6 bg-gray-50">
       <h1 className="text-3xl font-bold mb-6 text-[#7f5c7e]">لوحة تحكم الأدمن</h1>
 
+      {/* نموذج إضافة / تعديل المنتج */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold mb-4">{editId ? "تعديل منتج" : "إضافة منتج"}</h2>
 
@@ -187,6 +185,7 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {/* عرض المنتجات */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {products.map((p) => (
           <div key={p.id} className="bg-white p-4 rounded shadow-md">
