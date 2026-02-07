@@ -44,10 +44,14 @@ export default function CategoryPage() {
   const { convertPrice, getCurrencySymbol } = useCurrency()
   const { toggleFavorite, isFavorite } = useFavorites()
 
-  // ✅ جلب المنتجات بشكل صحيح
+  // ✅ جلب المنتجات من Supabase حسب الفئة
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true)
+
+      // مهم للتأكد
+      console.log("CATEGORY SLUG:", slug)
+
       const data = await getProductsByCategory(slug)
       setProducts(data)
       setLoading(false)
@@ -76,7 +80,7 @@ export default function CategoryPage() {
           id: product.id,
           name: product.name,
           price: product.price,
-          image: product.image_url, // ✅ مهم
+          image: product.image_url,
         },
       })
     }
