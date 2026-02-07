@@ -61,32 +61,22 @@ export default function AdminPage() {
 
     if (image) {
       const fileName = `${Date.now()}-${image.name}`;
-
-      // رفع الصورة
       const { data: uploadData, error: uploadError } = await supabase
         .storage
         .from("products")
         .upload(fileName, image);
 
-      if (uploadError) {
-        return alert("فشل رفع الصورة: " + uploadError.message);
-      }
+      if (uploadError) return alert("فشل رفع الصورة: " + uploadError.message);
 
-      // الحصول على public URL
-      const { data: publicData, error: publicError } = supabase
+      const { data: publicData } = supabase
         .storage
         .from("products")
         .getPublicUrl(fileName);
-
-      if (publicError) {
-        return alert("فشل الحصول على رابط الصورة: " + publicError.message);
-      }
 
       imageUrl = publicData.publicUrl;
     }
 
     if (editId) {
-      // تعديل المنتج
       const { error } = await supabase
         .from("products")
         .update({
@@ -99,7 +89,6 @@ export default function AdminPage() {
 
       if (error) return alert("فشل تعديل المنتج: " + error.message);
     } else {
-      // إضافة منتج جديد
       if (!imageUrl) return alert("اختر صورة للمنتج");
 
       const { error } = await supabase
@@ -164,9 +153,7 @@ export default function AdminPage() {
           onChange={(e) => setCategory(e.target.value)}
         >
           {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
+            <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
 
