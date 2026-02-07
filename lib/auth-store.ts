@@ -12,20 +12,24 @@ const ADMIN_EMAIL = "ahmadxxcc200@gmail.com";
 
 export function useAuth() {
   const [user, setUser] = useState<{ email: string } | null>(null);
-  const [loading, setLoading] = useState(true); // مهم لتأخير إعادة التوجيه
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // تحقق من الجلسة عند تحميل الصفحة
-    const getSession = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data.user && data.user.email === ADMIN_EMAIL) {
-        setUser({ email: data.user.email });
-      }
-      setLoading(false); // انتهى التحميل
-    };
-    getSession();
+    const initAuth = async () => {
+      // جلب الجلسة الحالية
+      const { data } = await supabase.auth.getSession();
+      const sessionUser = data.session?.user;
 
-    // استماع لتغيير حالة الجلسة
+      if (sessionUser && sessionUser.email === ADMIN_EMAIL) {
+        setUser({ email: sessionUser.email });
+      }
+
+      setLoading(false);
+    };
+
+    initAuth();
+
+    // الاستماع لتغيير حالة الجلسة
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user?.email === ADMIN_EMAIL) {
         setUser({ email: session.user.email });
@@ -39,7 +43,6 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
     if (error) return { success: false, message: error.message };
 
     if (data.user?.email !== ADMIN_EMAIL) {
@@ -50,12 +53,12 @@ export function useAuth() {
     return { success: true, message: "تم تسجيل الدخول", user: data.user };
   };
 
-  const isAdmin = () => user?.email === ADMIN_EMAIL;
-
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
   };
 
-  return { user, login, logout, isAdmin, loading }; // أضفنا loading
+  const isAdmin = () => user?.email === ADMIN_EMAIL;
+
+  return { user, login, logout, isAdmin, loading };
 }
