@@ -1,87 +1,37 @@
-"use client"
+"use client";
 
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@supabase/supabase-js";
+import { useState } from "react";
 
-export type UserRole = "admin" | "user"
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-export interface User {
-  id: string
-  name: string
-  email: string
-  role: UserRole
-  createdAt: string
-}
+const ADMIN_EMAIL = "ahmadxxcc200@gmail.com"; // ضع بريد الأدمن هنا
 
-interface AuthState {
-  user: User | null
-  isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>
-  logout: () => void
-  isAdmin: () => boolean
-}
+export function useAuth() {
+  const [user, setUser] = useState<{ email: string } | null>(null);
 
-function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const login = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase URL or Anon Key is missing!")
-  }
+    if (error) return { success: false, message: error.message };
 
-  return createClient(supabaseUrl, supabaseAnonKey)
-}
-
-export const useAuth = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      isAuthenticated: false,
-
-      login: async (email: string, password: string) => {
-        const supabase = getSupabaseClient()
-
-        try {
-          const { data, error } = await supabase
-            .from("admins")
-            .select("*")
-            .eq("email", email)
-            .eq("password", password)
-            .single()
-
-          if (error || !data) {
-            return { success: false, message: "بيانات الدخول غير صحيحة" }
-          }
-
-          set({
-            user: {
-              id: data.id,
-              name: data.name || "مدير",
-              email: data.email,
-              role: "admin",
-              createdAt: data.created_at,
-            },
-            isAuthenticated: true,
-          })
-
-          return { success: true, message: "تم تسجيل دخول المدير بنجاح" }
-        } catch (err) {
-          return { success: false, message: "حدث خطأ أثناء تسجيل الدخول" }
-        }
-      },
-
-      logout: () => {
-        set({ user: null, isAuthenticated: false })
-      },
-
-      isAdmin: () => {
-        const { user } = get()
-        return user?.role === "admin"
-      },
-    }),
-    {
-      name: "auth-storage",
+    if (data.user?.email !== ADMIN_EMAIL) {
+      return { success: false, message: "هذا المستخدم ليس أدمن" };
     }
-  )
-)
+
+    setUser({ email: data.user.email! });
+    return { success: true, message: "تم تسجيل الدخول" };
+  };
+
+  const isAdmin = () => user?.email === ADMIN_EMAIL;
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  return { user, login, logout, isAdmin };
+}
