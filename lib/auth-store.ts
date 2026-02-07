@@ -16,9 +16,10 @@ export function useAuth() {
 
   useEffect(() => {
     const init = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data.user && data.user.email === ADMIN_EMAIL) {
-        setUser({ email: data.user.email });
+      // جلب الجلسة مباشرة من Supabase
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user?.email === ADMIN_EMAIL) {
+        setUser({ email: ADMIN_EMAIL });
       } else {
         setUser(null);
       }
@@ -26,9 +27,10 @@ export function useAuth() {
     };
     init();
 
+    // استماع لتغير حالة الجلسة
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user?.email === ADMIN_EMAIL) {
-        setUser({ email: session.user.email });
+        setUser({ email: ADMIN_EMAIL });
       } else {
         setUser(null);
       }
@@ -52,7 +54,7 @@ export function useAuth() {
       return { success: false, message: "هذا المستخدم ليس الأدمن" };
     }
 
-    setUser({ email: data.user.email });
+    setUser({ email: ADMIN_EMAIL });
     setLoading(false);
     return { success: true, message: "تم تسجيل الدخول" };
   };
