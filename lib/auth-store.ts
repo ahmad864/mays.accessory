@@ -12,6 +12,7 @@ const ADMIN_EMAIL = "ahmadxxcc200@gmail.com";
 
 export function useAuth() {
   const [user, setUser] = useState<{ email: string } | null>(null);
+  const [loading, setLoading] = useState(true); // مهم لتأخير إعادة التوجيه
 
   useEffect(() => {
     // تحقق من الجلسة عند تحميل الصفحة
@@ -20,6 +21,7 @@ export function useAuth() {
       if (data.user && data.user.email === ADMIN_EMAIL) {
         setUser({ email: data.user.email });
       }
+      setLoading(false); // انتهى التحميل
     };
     getSession();
 
@@ -55,5 +57,5 @@ export function useAuth() {
     setUser(null);
   };
 
-  return { user, login, logout, isAdmin };
+  return { user, login, logout, isAdmin, loading }; // أضفنا loading
 }
