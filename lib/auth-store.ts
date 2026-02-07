@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient, Session, User } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 
 const supabase = createClient(
@@ -11,31 +11,28 @@ const supabase = createClient(
 const ADMIN_EMAIL = "ahmadxxcc200@gmail.com";
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const sessionUser = data.session?.user || null;
-
-      if (sessionUser && sessionUser.email === ADMIN_EMAIL) {
-        setUser(sessionUser);
+    const init = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user && data.user.email === ADMIN_EMAIL) {
+        setUser({ email: data.user.email });
       } else {
         setUser(null);
       }
-
       setLoading(false);
     };
-
-    fetchSession();
+    init();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user?.email === ADMIN_EMAIL) {
-        setUser(session.user);
+        setUser({ email: session.user.email });
       } else {
         setUser(null);
       }
+      setLoading(false);
     });
 
     return () => listener.subscription.unsubscribe();
@@ -55,9 +52,9 @@ export function useAuth() {
       return { success: false, message: "هذا المستخدم ليس الأدمن" };
     }
 
-    setUser(data.user);
+    setUser({ email: data.user.email });
     setLoading(false);
-    return { success: true, message: "تم تسجيل الدخول", user: data.user };
+    return { success: true, message: "تم تسجيل الدخول" };
   };
 
   const logout = async () => {
