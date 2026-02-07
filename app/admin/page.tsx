@@ -11,6 +11,8 @@ interface Product {
   price: number;
   category: string;
   image_url: string;
+  stock: number; // إضافة stock
+  is_new: boolean; // إضافة is_new
 }
 
 const categories = ["أحلاق", "خواتم", "اساور", "سلاسل", "نظارات", "ساعات"];
@@ -23,6 +25,8 @@ export default function AdminPage() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState(categories[0]);
   const [image, setImage] = useState<File | null>(null);
+  const [stock, setStock] = useState(1); // إضافة state للـ stock
+  const [isNew, setIsNew] = useState(false); // إضافة state للـ is_new
   const [editId, setEditId] = useState<string | null>(null);
 
   // حماية الصفحة وجلب المنتجات
@@ -84,6 +88,8 @@ export default function AdminPage() {
           name,
           price: Number(price),
           category,
+          stock, // تضمين stock
+          is_new: isNew, // تضمين is_new
           ...(imageUrl && { image_url: imageUrl }),
         })
         .eq("id", editId);
@@ -95,7 +101,14 @@ export default function AdminPage() {
 
       const { error } = await supabase
         .from("products")
-        .insert([{ name, price: Number(price), category, image_url: imageUrl }]);
+        .insert([{
+          name,
+          price: Number(price),
+          category,
+          stock, // تضمين stock
+          is_new: isNew, // تضمين is_new
+          image_url: imageUrl,
+        }]);
 
       if (error) return alert("فشل إضافة المنتج: " + error.message);
     }
@@ -115,6 +128,8 @@ export default function AdminPage() {
     setName(p.name);
     setPrice(p.price.toString());
     setCategory(p.category);
+    setStock(p.stock); // إضافة قيمة stock
+    setIsNew(p.is_new); // إضافة قيمة is_new
   };
 
   const resetForm = () => {
@@ -122,6 +137,8 @@ export default function AdminPage() {
     setName("");
     setPrice("");
     setCategory(categories[0]);
+    setStock(1); // إعادة تعيين stock
+    setIsNew(false); // إعادة تعيين is_new
     setImage(null);
   };
 
@@ -158,6 +175,24 @@ export default function AdminPage() {
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
+
+        <input
+          type="number"
+          className="border border-gray-300 rounded p-2 mb-3 w-full"
+          placeholder="الكمية المتوفرة"
+          value={stock}
+          onChange={(e) => setStock(Number(e.target.value))}
+        />
+
+        <div className="flex items-center mb-3">
+          <input
+            type="checkbox"
+            checked={isNew}
+            onChange={(e) => setIsNew(e.target.checked)}
+            className="mr-2"
+          />
+          <label>منتج جديد</label>
+        </div>
 
         <input
           type="file"
@@ -197,6 +232,8 @@ export default function AdminPage() {
             <h3 className="font-semibold text-lg">{p.name}</h3>
             <p className="text-gray-700 mb-1">السعر: {p.price} د.ل</p>
             <p className="text-gray-500 mb-2">الفئة: {p.category}</p>
+            <p className="text-gray-500 mb-2">متوفر: {p.stock}</p>
+            {p.is_new && <span className="text-green-500">جديد</span>}
 
             <div className="flex gap-2">
               <button
