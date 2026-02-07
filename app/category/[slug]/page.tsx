@@ -5,22 +5,16 @@ import { useParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  Heart,
-  ShoppingBag,
-  AlertTriangle,
-  Plus,
-  Minus,
-  ArrowRight,
-  Grid3X3,
-} from "lucide-react"
+import { ShoppingBag, ArrowRight } from "lucide-react"
 import { useCart } from "@/lib/cart-store"
 import { useCurrency } from "@/lib/currency-store"
 import { useFavorites } from "@/lib/favorites-store"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { getProductsByCategory } from "@/lib/category-products"
+
+// ✅ الاستيراد الصحيح
+import { getProductsByCategory } from "@/lib/products-db"
 
 const categoryNames: { [key: string]: string } = {
   rings: "خواتم",
@@ -37,53 +31,41 @@ export default function CategoryPage() {
 
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [quantities, setQuantities] = useState<{ [key: number]: number }>({})
-  const [showAll, setShowAll] = useState(false)
 
   const { dispatch: cartDispatch } = useCart()
   const { convertPrice, getCurrencySymbol } = useCurrency()
   const { toggleFavorite, isFavorite } = useFavorites()
 
-  // ✅ جلب المنتجات من Supabase حسب الفئة
+  // ✅ جلب المنتجات من Supabase
   useEffect(() => {
+    if (!slug) return
+
     const fetchProducts = async () => {
       setLoading(true)
-
-      // مهم للتأكد
       console.log("CATEGORY SLUG:", slug)
 
       const data = await getProductsByCategory(slug)
       setProducts(data)
+
       setLoading(false)
     }
 
-    if (slug) fetchProducts()
+    fetchProducts()
   }, [slug])
-
-  const displayedProducts = showAll ? products : products.slice(0, 12)
-
-  const updateQuantity = (productId: number, change: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [productId]: Math.max(1, (prev[productId] || 1) + change),
-    }))
-  }
 
   const addToCart = (product: any) => {
     if (product.stock <= 0) return
 
-    const quantity = quantities[product.id] || 1
-    for (let i = 0; i < quantity; i++) {
-      cartDispatch({
-        type: "ADD_ITEM",
-        payload: {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image_url,
-        },
-      })
-    }
+    cartDispatch({
+      type: "ADD_ITEM",
+      payload: {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image_url,
+      },
+    })
+
     cartDispatch({ type: "TOGGLE_CART" })
   }
 
@@ -124,7 +106,7 @@ export default function CategoryPage() {
 
           {/* Products */}
           <div className="grid grid-cols-2 gap-4 md:gap-6">
-            {displayedProducts.map((product) => (
+            {products.map((product) => (
               <Card key={product.id}>
                 <CardContent className="p-0">
                   <div className="relative aspect-square">
@@ -134,16 +116,11 @@ export default function CategoryPage() {
                       className="w-full h-full object-cover"
                     />
 
-                    <div className="absolute top-2 left-2 flex gap-1">
-                      {product.is_new && (
-                        <Badge className="bg-[#7f5c7e] text-white">
-                          جديد
-                        </Badge>
-                      )}
-                      {product.stock === 0 && (
-                        <Badge variant="destructive">نفد</Badge>
-                      )}
-                    </div>
+                    {product.is_new && (
+                      <Badge className="absolute top-2 left-2 bg-[#7f5c7e] text-white">
+                        جديد
+                      </Badge>
+                    )}
                   </div>
 
                   <div className="p-3">
