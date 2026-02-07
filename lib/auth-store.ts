@@ -1,37 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-store";
+import { createClient } from "@supabase/supabase-js";
+import { useState, useEffect } from "react";
 
-export default function AdminPage() {
-  const router = useRouter();
-  const { user, isAdmin } = useAuth();
-  const [loading, setLoading] = useState(true);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
+export function useAuth() {
+  const [user, setUser] = useState<{ email: string } | null>(null);
+
+  // التحقق من الجلسة الحالية عند تحميل الصفحة
   useEffect(() => {
-    // نتحقق بعد تحميل الـ hook
-    if (!user) return;
+    const getSession = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) setUser({ email: data.user.email! });
+    };
+    getSession();
+  }, []);
 
-    if (!isAdmin()) {
-      router.push("/login"); // إعادة توجيه أي شخص ليس أدمن
-    } else {
-      setLoading(false); // تم التحقق والأدمن موجود
-    }
-  }, [user]);
+  const login = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>جارٍ التحقق من الحساب...</p>
-      </div>
-    );
-  }
+    if (error) return { success: false, message: error.message };
+    if (!data.user) return { success: false, message: "فشل تسجيل الدخول" };
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-      <h1 className="text-3xl font-bold mb-6">لوحة تحكم الأدمن</h1>
-      <p>مرحبًا {user?.email}</p>
-    </div>
-  );
+    setUser({ email: data.user.email! });
+    return { success: true, message: "تم تسجيل الدخول" };
+  };
+
+  const isAdmin = () => !!user; // أي مستخدم مسجّل الدخول يعتبر أدمن هنا
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  return { user, login, logout, isAdmin };
 }
