@@ -13,7 +13,7 @@ interface Product {
   image_url: string;
 }
 
-const categories = ["أحلق", "خواتم", "أساور", "سلاسل", "نظارات", "ساعات"];
+const categories = ["إحلاق", "خواتم", "أساور", "سلاسل", "نظارات", "ساعات"];
 
 export default function AdminPage() {
   const router = useRouter();
@@ -41,7 +41,12 @@ export default function AdminPage() {
       .from<Product>("products")
       .select("*")
       .order("created_at", { ascending: false });
-    if (error) console.log("Fetch error:", error.message);
+
+    if (error) {
+      console.log("Fetch error:", error.message);
+      return;
+    }
+
     setProducts(data || []);
   };
 
@@ -56,17 +61,33 @@ export default function AdminPage() {
 
     if (image) {
       const fileName = `${Date.now()}-${image.name}`;
-      const { error: uploadError } = await supabase.storage
+
+      // رفع الصورة
+      const { data: uploadData, error: uploadError } = await supabase
+        .storage
         .from("products")
         .upload(fileName, image);
-      if (uploadError) return alert("فشل رفع الصورة: " + uploadError.message);
 
-      const { data } = supabase.storage.from("products").getPublicUrl(fileName);
-      imageUrl = data.publicUrl;
+      if (uploadError) {
+        return alert("فشل رفع الصورة: " + uploadError.message);
+      }
+
+      // الحصول على public URL
+      const { data: publicData, error: publicError } = supabase
+        .storage
+        .from("products")
+        .getPublicUrl(fileName);
+
+      if (publicError) {
+        return alert("فشل الحصول على رابط الصورة: " + publicError.message);
+      }
+
+      imageUrl = publicData.publicUrl;
     }
 
     if (editId) {
-      await supabase
+      // تعديل المنتج
+      const { error } = await supabase
         .from("products")
         .update({
           name,
@@ -75,11 +96,17 @@ export default function AdminPage() {
           ...(imageUrl && { image_url: imageUrl }),
         })
         .eq("id", editId);
+
+      if (error) return alert("فشل تعديل المنتج: " + error.message);
     } else {
+      // إضافة منتج جديد
       if (!imageUrl) return alert("اختر صورة للمنتج");
-      await supabase
+
+      const { error } = await supabase
         .from("products")
         .insert([{ name, price: Number(price), category, image_url: imageUrl }]);
+
+      if (error) return alert("فشل إضافة المنتج: " + error.message);
     }
 
     resetForm();
@@ -87,7 +114,8 @@ export default function AdminPage() {
   };
 
   const deleteProduct = async (id: string) => {
-    await supabase.from("products").delete().eq("id", id);
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) return alert("فشل حذف المنتج: " + error.message);
     fetchProducts();
   };
 
@@ -142,7 +170,12 @@ export default function AdminPage() {
           ))}
         </select>
 
-        <input type="file" accept="image/*" onChange={handleFileChange} className="mb-3" />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="mb-3"
+        />
 
         <div className="flex gap-2">
           <button
