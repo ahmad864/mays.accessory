@@ -3,6 +3,7 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-store"; // استدعاء الهُوك
 
 interface Product {
   id: string;
@@ -13,6 +14,7 @@ interface Product {
 
 export default function AdminPage() {
   const router = useRouter();
+  const { user, loading } = useAuth(); // نستخدم loading
   const [products, setProducts] = useState<Product[]>([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -21,16 +23,14 @@ export default function AdminPage() {
 
   // حماية الصفحة + جلب المنتجات
   useEffect(() => {
-    const checkAdmin = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user || data.user.email !== "ahmadxxcc200@gmail.com") {
-        router.push("/login");
+    if (!loading) {
+      if (!user) {
+        router.push("/login"); // إعادة التوجيه إذا لم يكن أدمن
       } else {
         getProducts();
       }
-    };
-    checkAdmin();
-  }, []);
+    }
+  }, [loading, user]);
 
   // جلب المنتجات
   const getProducts = async () => {
@@ -60,11 +60,8 @@ export default function AdminPage() {
 
     if (image) {
       const fileName = `${Date.now()}-${image.name}`;
-
       await supabase.storage.from("products").upload(fileName, image);
-
       const { data } = supabase.storage.from("products").getPublicUrl(fileName);
-
       imageUrl = data.publicUrl;
     }
 
