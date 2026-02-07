@@ -8,7 +8,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const ADMIN_EMAIL = "ahmadxxcc200@gmail.com"; // ضع بريد الأدمن هنا
+const ADMIN_EMAIL = "admin@example.com"; // ضع بريد الأدمن هنا
 
 export function useAuth() {
   const [user, setUser] = useState<{ email: string } | null>(null);
