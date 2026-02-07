@@ -1,37 +1,37 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-store";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+export default function AdminPage() {
+  const router = useRouter();
+  const { user, isAdmin } = useAuth();
+  const [loading, setLoading] = useState(true);
 
-const ADMIN_EMAIL = "admin@example.com"; // ضع بريد الأدمن هنا
+  useEffect(() => {
+    // نتحقق بعد تحميل الـ hook
+    if (!user) return;
 
-export function useAuth() {
-  const [user, setUser] = useState<{ email: string } | null>(null);
-
-  const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) return { success: false, message: error.message };
-
-    if (data.user?.email !== ADMIN_EMAIL) {
-      return { success: false, message: "هذا المستخدم ليس أدمن" };
+    if (!isAdmin()) {
+      router.push("/login"); // إعادة توجيه أي شخص ليس أدمن
+    } else {
+      setLoading(false); // تم التحقق والأدمن موجود
     }
+  }, [user]);
 
-    setUser({ email: data.user.email! });
-    return { success: true, message: "تم تسجيل الدخول" };
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>جارٍ التحقق من الحساب...</p>
+      </div>
+    );
+  }
 
-  const isAdmin = () => user?.email === ADMIN_EMAIL;
-
-  const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
-
-  return { user, login, logout, isAdmin };
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <h1 className="text-3xl font-bold mb-6">لوحة تحكم الأدمن</h1>
+      <p>مرحبًا {user?.email}</p>
+    </div>
+  );
 }
