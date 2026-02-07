@@ -11,32 +11,50 @@ interface Product {
   price: number;
   category: string;
   image_url: string;
-  stock: number; // إضافة stock
-  is_new: boolean; // إضافة is_new
+  stock: number;
+  is_new: boolean;
 }
 
+/* 👇 الفئات للعرض (عربي) */
 const categories = ["أحلاق", "خواتم", "اساور", "سلاسل", "نظارات", "ساعات"];
+
+/* 👇 التحويل من عربي → إنجليزي (المهم) */
+const categoryMap: { [key: string]: string } = {
+  "أحلاق": "earrings",
+  "خواتم": "rings",
+  "اساور": "bracelets",
+  "سلاسل": "necklaces",
+  "نظارات": "glasses",
+  "ساعات": "watches",
+};
+
+/* 👇 العكس (إنجليزي → عربي) للتعديل */
+const reverseCategoryMap: { [key: string]: string } = {
+  earrings: "أحلاق",
+  rings: "خواتم",
+  bracelets: "اساور",
+  necklaces: "سلاسل",
+  glasses: "نظارات",
+  watches: "ساعات",
+};
 
 export default function AdminPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState(categories[0]);
   const [image, setImage] = useState<File | null>(null);
-  const [stock, setStock] = useState(1); // إضافة state للـ stock
-  const [isNew, setIsNew] = useState(false); // إضافة state للـ is_new
+  const [stock, setStock] = useState(1);
+  const [isNew, setIsNew] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // حماية الصفحة وجلب المنتجات
   useEffect(() => {
     if (!loading) {
-      if (!user) {
-        router.push("/login");
-      } else {
-        fetchProducts();
-      }
+      if (!user) router.push("/login");
+      else fetchProducts();
     }
   }, [loading, user]);
 
@@ -46,8 +64,7 @@ export default function AdminPage() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) return console.log("Fetch error:", error.message);
-
+    if (error) return console.log(error.message);
     setProducts(data || []);
   };
 
@@ -58,68 +75,55 @@ export default function AdminPage() {
   const saveProduct = async () => {
     if (!name || !price) return alert("اكتب اسم وسعر المنتج");
 
+    const categoryEn = categoryMap[category]; // ⭐ المهم
+
     let imageUrl: string | null = null;
 
     if (image) {
       const fileName = `${Date.now()}-${image.name}`;
-
-      // رفع الصورة إلى bucket عام
-      const { error: uploadError } = await supabase
-        .storage
-        .from("products") // تأكد أن هذا اسم bucket
+      const { error } = await supabase.storage
+        .from("products")
         .upload(fileName, image, { upsert: true });
 
-      if (uploadError) return alert("فشل رفع الصورة: " + uploadError.message);
+      if (error) return alert(error.message);
 
-      // الحصول على public URL
-      const { data: publicData } = supabase
-        .storage
+      const { data } = supabase.storage
         .from("products")
         .getPublicUrl(fileName);
 
-      imageUrl = publicData.publicUrl;
+      imageUrl = data.publicUrl;
     }
 
     if (editId) {
-      // تعديل المنتج
       const { error } = await supabase
         .from("products")
         .update({
           name,
           price: Number(price),
-          category,
-          stock, // تضمين stock
-          is_new: isNew, // تضمين is_new
+          category: categoryEn,
+          stock,
+          is_new: isNew,
           ...(imageUrl && { image_url: imageUrl }),
         })
         .eq("id", editId);
 
-      if (error) return alert("فشل تعديل المنتج: " + error.message);
+      if (error) return alert(error.message);
     } else {
-      // إضافة منتج جديد
-      if (!imageUrl) return alert("اختر صورة للمنتج");
+      if (!imageUrl) return alert("اختر صورة");
 
-      const { error } = await supabase
-        .from("products")
-        .insert([{
-          name,
-          price: Number(price),
-          category,
-          stock, // تضمين stock
-          is_new: isNew, // تضمين is_new
-          image_url: imageUrl,
-        }]);
+      const { error } = await supabase.from("products").insert({
+        name,
+        price: Number(price),
+        category: categoryEn,
+        stock,
+        is_new: isNew,
+        image_url: imageUrl,
+      });
 
-      if (error) return alert("فشل إضافة المنتج: " + error.message);
+      if (error) return alert(error.message);
     }
 
     resetForm();
-    fetchProducts();
-  };
-
-  const deleteProduct = async (id: string) => {
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) return alert("فشل حذف المنتج: " + error.message);
     fetchProducts();
   };
 
@@ -127,9 +131,14 @@ export default function AdminPage() {
     setEditId(p.id);
     setName(p.name);
     setPrice(p.price.toString());
-    setCategory(p.category);
-    setStock(p.stock); // إضافة قيمة stock
-    setIsNew(p.is_new); // إضافة قيمة is_new
+    setCategory(reverseCategoryMap[p.category] || categories[0]); // ⭐
+    setStock(p.stock);
+    setIsNew(p.is_new);
+  };
+
+  const deleteProduct = async (id: string) => {
+    await supabase.from("products").delete().eq("id", id);
+    fetchProducts();
   };
 
   const resetForm = () => {
@@ -137,121 +146,40 @@ export default function AdminPage() {
     setName("");
     setPrice("");
     setCategory(categories[0]);
-    setStock(1); // إعادة تعيين stock
-    setIsNew(false); // إعادة تعيين is_new
+    setStock(1);
+    setIsNew(false);
     setImage(null);
   };
 
-  if (loading) return <p className="p-6">جاري التحقق من صلاحية الوصول...</p>;
+  if (loading) return <p>جاري التحقق...</p>;
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-6 text-[#7f5c7e]">لوحة تحكم الأدمن</h1>
+      <h1 className="text-3xl font-bold mb-6 text-[#7f5c7e]">
+        لوحة تحكم الأدمن
+      </h1>
 
-      {/* نموذج إضافة / تعديل المنتج */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h2 className="text-xl font-semibold mb-4">{editId ? "تعديل منتج" : "إضافة منتج"}</h2>
+      {/* النموذج */}
+      <div className="bg-white p-6 rounded shadow mb-6">
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اسم المنتج" className="input" />
+        <input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="السعر" className="input" />
 
-        <input
-          className="border border-gray-300 rounded p-2 mb-3 w-full"
-          placeholder="اسم المنتج"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <input
-          className="border border-gray-300 rounded p-2 mb-3 w-full"
-          placeholder="سعر المنتج"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-
-        <select
-          className="border border-gray-300 rounded p-2 mb-3 w-full"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="input">
+          {categories.map((c) => <option key={c}>{c}</option>)}
         </select>
 
-        <input
-          type="number"
-          className="border border-gray-300 rounded p-2 mb-3 w-full"
-          placeholder="الكمية المتوفرة"
-          value={stock}
-          onChange={(e) => setStock(Number(e.target.value))}
-        />
+        <input type="number" value={stock} onChange={(e) => setStock(+e.target.value)} className="input" />
 
-        <div className="flex items-center mb-3">
-          <input
-            type="checkbox"
-            checked={isNew}
-            onChange={(e) => setIsNew(e.target.checked)}
-            className="mr-2"
-          />
-          <label>منتج جديد</label>
-        </div>
+        <label>
+          <input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} />
+          منتج جديد
+        </label>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="mb-3"
-        />
+        <input type="file" onChange={handleFileChange} />
 
-        <div className="flex gap-2">
-          <button
-            className="bg-[#7f5c7e] text-white px-4 py-2 rounded hover:bg-[#6b4c6a]"
-            onClick={saveProduct}
-          >
-            {editId ? "حفظ التعديل" : "إضافة المنتج"}
-          </button>
-
-          {editId && (
-            <button
-              className="border border-gray-400 text-gray-700 px-4 py-2 rounded hover:bg-gray-100"
-              onClick={resetForm}
-            >
-              إلغاء
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* عرض المنتجات */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {products.map((p) => (
-          <div key={p.id} className="bg-white p-4 rounded shadow-md">
-            <img
-              src={p.image_url}
-              alt={p.name}
-              className="w-full h-48 object-cover rounded mb-2"
-            />
-            <h3 className="font-semibold text-lg">{p.name}</h3>
-            <p className="text-gray-700 mb-1">السعر: {p.price} د.ل</p>
-            <p className="text-gray-500 mb-2">الفئة: {p.category}</p>
-            <p className="text-gray-500 mb-2">متوفر: {p.stock}</p>
-            {p.is_new && <span className="text-green-500">جديد</span>}
-
-            <div className="flex gap-2">
-              <button
-                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                onClick={() => editProduct(p)}
-              >
-                تعديل
-              </button>
-
-              <button
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                onClick={() => deleteProduct(p.id)}
-              >
-                حذف
-              </button>
-            </div>
-          </div>
-        ))}
+        <button onClick={saveProduct} className="btn">
+          {editId ? "حفظ التعديل" : "إضافة المنتج"}
+        </button>
       </div>
     </div>
   );
