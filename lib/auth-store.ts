@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, Session, User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 
 const supabase = createClient(
@@ -11,28 +11,28 @@ const supabase = createClient(
 const ADMIN_EMAIL = "ahmadxxcc200@gmail.com";
 
 export function useAuth() {
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      // جلب الجلسة الحالية
+    const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
-      const sessionUser = data.session?.user;
+      const sessionUser = data.session?.user || null;
 
       if (sessionUser && sessionUser.email === ADMIN_EMAIL) {
-        setUser({ email: sessionUser.email });
+        setUser(sessionUser);
+      } else {
+        setUser(null);
       }
 
       setLoading(false);
     };
 
-    initAuth();
+    fetchSession();
 
-    // الاستماع لتغيير حالة الجلسة
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user?.email === ADMIN_EMAIL) {
-        setUser({ email: session.user.email });
+        setUser(session.user);
       } else {
         setUser(null);
       }
@@ -42,14 +42,21 @@ export function useAuth() {
   }, []);
 
   const login = async (email: string, password: string) => {
+    setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { success: false, message: error.message };
+
+    if (error) {
+      setLoading(false);
+      return { success: false, message: error.message };
+    }
 
     if (data.user?.email !== ADMIN_EMAIL) {
+      setLoading(false);
       return { success: false, message: "هذا المستخدم ليس الأدمن" };
     }
 
-    setUser({ email: data.user.email });
+    setUser(data.user);
+    setLoading(false);
     return { success: true, message: "تم تسجيل الدخول", user: data.user };
   };
 
