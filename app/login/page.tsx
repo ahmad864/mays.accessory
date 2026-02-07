@@ -1,52 +1,50 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-store"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-store";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { login } = useAuth() // لم نعد نحتاج isAdmin
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState("")
-  const [messageType, setMessageType] = useState<"success" | "error">("success")
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const { login, user } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error">("success");
+  const [showPassword, setShowPassword] = useState(false);
 
   const showMessage = (msg: string, type: "success" | "error" = "success") => {
-    setMessage(msg)
-    setMessageType(type)
-    setTimeout(() => setMessage(""), 5000)
-  }
+    setMessage(msg);
+    setMessageType(type);
+    setTimeout(() => setMessage(""), 5000);
+  };
+
+  useEffect(() => {
+    // إذا كان الأدمن مسجل مسبقاً، تحويله مباشرة
+    if (user) router.push("/admin");
+  }, [user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
-    const result = await login(email, password)
-    setLoading(false)
+    const result = await login(email, password);
+    setLoading(false);
 
     if (result.success) {
-      showMessage(result.message, "success")
-
-      // ✅ تحقق مباشر من البريد للأدمن
-      if (email === "admin@email.com") {
-        router.push("/admin") // تحويل للأدمن
-      } else {
-        router.push("/") // أي مستخدم عادي
-      }
-
+      showMessage(result.message, "success");
+      router.push("/admin"); // تحويل مباشرة للأدمن
     } else {
-      showMessage(result.message, "error")
+      showMessage(result.message, "error");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
@@ -64,8 +62,8 @@ export default function LoginPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>تسجيل دخول الإدمن</CardTitle>
-            <CardDescription>أدخل بريد الإدمن وكلمة المرور للوصول إلى لوحة التحكم</CardDescription>
+            <CardTitle>تسجيل دخول الأدمن</CardTitle>
+            <CardDescription>أدخل بريد الأدمن وكلمة المرور للوصول إلى لوحة التحكم</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -76,7 +74,7 @@ export default function LoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="أدخل بريد الإدمن"
+                    placeholder="أدخل بريد الأدمن"
                     className="pl-10"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -118,5 +116,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
