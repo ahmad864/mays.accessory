@@ -12,7 +12,7 @@ import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isAdmin } = useAuth()
+  const { login } = useAuth() // لم نعد نحتاج isAdmin
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -36,9 +36,9 @@ export default function LoginPage() {
     if (result.success) {
       showMessage(result.message, "success")
 
-      // ✅ تحويل المستخدم
-      if (isAdmin()) {
-        router.push("/admin") // إذا كان أدمن
+      // ✅ تحقق مباشر من البريد للأدمن
+      if (email === "admin@email.com") {
+        router.push("/admin") // تحويل للأدمن
       } else {
         router.push("/") // أي مستخدم عادي
       }
