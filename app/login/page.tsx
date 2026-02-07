@@ -35,9 +35,14 @@ export default function LoginPage() {
 
     if (result.success) {
       showMessage(result.message, "success")
+
+      // ✅ تحويل المستخدم
       if (isAdmin()) {
-        router.push("/admin")
+        router.push("/admin") // إذا كان أدمن
+      } else {
+        router.push("/") // أي مستخدم عادي
       }
+
     } else {
       showMessage(result.message, "error")
     }
