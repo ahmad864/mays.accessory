@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 
 interface Product {
   id: string;
   name: string;
   price: number;
-  image: string;
+  image_url: string;
   category: string;
   low_stock: boolean;
-  is_featured: boolean; // ⭐ جديد
+  is_featured: boolean;
 }
 
 export default function AdminProductsPage() {
@@ -24,23 +24,20 @@ export default function AdminProductsPage() {
     price: 1,
     category: "",
     low_stock: false,
-    is_featured: false, // ⭐ جديد
+    is_featured: false,
     imageFile: null as File | null,
   });
 
   const categories = ["خواتم", "أحلاق", "اساور", "سلاسل", "ساعات", "نظارات"];
 
-  // جلب المنتجات
   const fetchProducts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("products")
       .select("*")
       .order("name");
 
-    if (error) alert("خطأ في جلب المنتجات: " + error.message);
-    else setProducts(data as Product[]);
-
+    setProducts((data as Product[]) ?? []);
     setLoading(false);
   };
 
@@ -48,36 +45,24 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type, checked, files } = e.target as HTMLInputElement;
+  const handleChange = (e: any) => {
+    const { name, value, type, checked, files } = e.target;
 
     if (type === "checkbox")
-      setFormData((prev) => ({ ...prev, [name]: checked }));
+      setFormData((p) => ({ ...p, [name]: checked }));
     else if (type === "file")
-      setFormData((prev) => ({
-        ...prev,
-        imageFile: files ? files[0] : null,
-      }));
-    else if (type === "number")
-      setFormData((prev) => ({ ...prev, [name]: Number(value) }));
-    else setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((p) => ({ ...p, imageFile: files?.[0] ?? null }));
+    else
+      setFormData((p) => ({ ...p, [name]: value }));
   };
 
-  // رفع الصورة
   const uploadImage = async (file: File) => {
     const ext = file.name.split(".").pop();
-    const fileName = `${Math.random().toString(36).slice(2)}.${ext}`;
+    const fileName = `${crypto.randomUUID()}.${ext}`;
 
-    const { error } = await supabase.storage
+    await supabase.storage
       .from("product-images")
       .upload(fileName, file, { upsert: true });
-
-    if (error) {
-      alert("خطأ في رفع الصورة: " + error.message);
-      return null;
-    }
 
     const { data } = supabase.storage
       .from("product-images")
@@ -86,72 +71,43 @@ export default function AdminProductsPage() {
     return data.publicUrl;
   };
 
-  // إضافة / تعديل
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.category) {
-      alert("يرجى تعبئة جميع الحقول");
-      return;
-    }
-
-    let imageUrl = editingProduct?.image || "";
+    let imageUrl = editingProduct?.image_url || "";
 
     if (formData.imageFile) {
-      const uploaded = await uploadImage(formData.imageFile);
-      if (!uploaded) return;
-      imageUrl = uploaded;
+      imageUrl = await uploadImage(formData.imageFile);
     }
+
+    const payload = {
+      name: formData.name,
+      price: formData.price,
+      category: formData.category,
+      low_stock: formData.low_stock,
+      is_featured: formData.is_featured,
+      image_url: imageUrl,
+    };
 
     if (editingProduct) {
-      await supabase.from("products").update({
-        name: formData.name,
-        price: formData.price,
-        category: formData.category,
-        low_stock: formData.low_stock,
-        is_featured: formData.is_featured, // ⭐
-        image: imageUrl,
-        updated_at: new Date(),
-      }).eq("id", editingProduct.id);
+      await supabase.from("products").update(payload).eq("id", editingProduct.id);
     } else {
-      await supabase.from("products").insert([{
-        name: formData.name,
-        price: formData.price,
-        category: formData.category,
-        low_stock: formData.low_stock,
-        is_featured: formData.is_featured, // ⭐
-        image: imageUrl,
-      }]);
+      await supabase.from("products").insert(payload);
     }
 
-    setFormData({
-      name: "",
-      price: 1,
-      category: "",
-      low_stock: false,
-      is_featured: false,
-      imageFile: null,
-    });
-
-    setEditingProduct(null);
     setShowForm(false);
+    setEditingProduct(null);
     fetchProducts();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد من الحذف؟")) return;
-    await supabase.from("products").delete().eq("id", id);
-    fetchProducts();
-  };
-
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
+  const handleEdit = (p: Product) => {
+    setEditingProduct(p);
     setFormData({
-      name: product.name,
-      price: product.price,
-      category: product.category,
-      low_stock: product.low_stock,
-      is_featured: product.is_featured, // ⭐
+      name: p.name,
+      price: p.price,
+      category: p.category,
+      low_stock: p.low_stock,
+      is_featured: p.is_featured,
       imageFile: null,
     });
     setShowForm(true);
@@ -169,112 +125,49 @@ export default function AdminProductsPage() {
       </button>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="border p-4 rounded mb-6 bg-gray-50">
-          <input
-            type="text"
-            name="name"
-            placeholder="اسم المنتج"
-            value={formData.name}
-            onChange={handleChange}
-            className="border p-2 w-full mb-2"
-            required
-          />
+        <form onSubmit={handleSubmit} className="border p-4 rounded mb-6">
+          <input name="name" placeholder="اسم المنتج" onChange={handleChange} className="border p-2 w-full mb-2" />
+          <input name="price" type="number" onChange={handleChange} className="border p-2 w-full mb-2" />
 
-          <input
-            type="number"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            className="border p-2 w-full mb-2"
-            required
-          />
-
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="border p-2 w-full mb-2"
-            required
-          >
+          <select name="category" onChange={handleChange} className="border p-2 w-full mb-2">
             <option value="">اختر الفئة</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
+            {categories.map((c) => <option key={c}>{c}</option>)}
           </select>
 
-          <label className="flex items-center mb-2">
-            <input
-              type="checkbox"
-              name="low_stock"
-              checked={formData.low_stock}
-              onChange={handleChange}
-              className="mr-2"
-            />
-            الكمية قليلة
-          </label>
-
-          <label className="flex items-center mb-2">
-            <input
-              type="checkbox"
-              name="is_featured"
-              checked={formData.is_featured}
-              onChange={handleChange}
-              className="mr-2"
-            />
+          <label className="flex gap-2 mb-2">
+            <input type="checkbox" name="is_featured" onChange={handleChange} />
             منتج مميز ⭐
           </label>
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleChange}
-            className="mb-2"
-          />
+          <input type="file" onChange={handleChange} />
 
-          <button className="bg-green-600 text-white px-4 py-2 rounded">
-            {editingProduct ? "تحديث المنتج" : "إضافة المنتج"}
+          <button className="bg-green-600 text-white px-4 py-2 rounded mt-2">
+            حفظ
           </button>
         </form>
       )}
 
-      {loading ? (
-        <p>جارٍ التحميل...</p>
-      ) : (
-        <div className="grid md:grid-cols-3 gap-4">
-          {products.map((p) => (
-            <div key={p.id} className="border p-4 rounded shadow relative">
-              {p.is_featured && (
-                <span className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 text-xs rounded">
-                  ⭐ مميز
-                </span>
-              )}
+      <div className="grid md:grid-cols-3 gap-4">
+        {products.map((p) => (
+          <div key={p.id} className="border p-4 rounded relative">
+            {p.is_featured && (
+              <span className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+                ⭐ مميز
+              </span>
+            )}
 
-              {p.image && (
-                <Image src={p.image} alt={p.name} width={200} height={200} />
-              )}
+            <Image src={p.image_url} alt={p.name} width={200} height={200} />
+            <h2 className="font-bold mt-2">{p.name}</h2>
 
-              <h2 className="font-bold mt-2">{p.name}</h2>
-              <p>السعر: {p.price}</p>
-              <p>الفئة: {p.category}</p>
-
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => handleEdit(p)}
-                  className="bg-yellow-500 text-white px-2 py-1 rounded"
-                >
-                  تعديل
-                </button>
-                <button
-                  onClick={() => handleDelete(p.id)}
-                  className="bg-red-600 text-white px-2 py-1 rounded"
-                >
-                  حذف
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            <button
+              onClick={() => handleEdit(p)}
+              className="bg-yellow-500 text-white px-2 py-1 rounded mt-2"
+            >
+              تعديل
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
