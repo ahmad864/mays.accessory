@@ -1,9 +1,22 @@
-export { default as Card } from "./card";
-export { default as CardHeader } from "./card-header";
-export { default as CardTitle } from "./card-title";
-export { default as CardDescription } from "./card-description";
-export { default as Alert } from "./alert";
-export { default as AlertDescription } from "./alert-description";
-export { default as Input } from "./input";       // إذا كان موجود
-export { default as Button } from "./button";     // إذا كان موجود
-export { default as Label } from "./label";       // إذا كان موجود
+// components/ui/index.ts
+
+// استيراد Card
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+} from './card'
+
+// استيراد Alert
+export { Alert, AlertDescription } from './alert'
+
+// استيراد Label (بدون default)
+export { Label } from './label'
+
+// استيراد أي عناصر أخرى مثل Input أو Button (بدون default)
+export { Input } from './input'
+export { Button } from './button'
