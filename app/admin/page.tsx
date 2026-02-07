@@ -3,7 +3,7 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/lib/auth-store"; // استدعاء الهُوك
+import { useAuth } from "@/lib/auth-store";
 
 interface Product {
   id: string;
@@ -14,42 +14,38 @@ interface Product {
 
 export default function AdminPage() {
   const router = useRouter();
-  const { user, loading } = useAuth(); // نستخدم loading
+  const { user, loading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // حماية الصفحة + جلب المنتجات
+  // حماية الصفحة + جلب المنتجات بعد التأكد من الجلسة
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.push("/login"); // إعادة التوجيه إذا لم يكن أدمن
+        router.push("/login"); // إعادة توجيه إذا لم يكن أدمن
       } else {
         getProducts();
       }
     }
   }, [loading, user]);
 
-  // جلب المنتجات
   const getProducts = async () => {
     const { data } = await supabase
       .from<Product>("products")
       .select("*")
       .order("created_at", { ascending: false });
-
     setProducts(data || []);
   };
 
-  // رفع الصورة من الملف
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setImage(e.target.files[0]);
     }
   };
 
-  // إضافة / تعديل منتج
   const saveProduct = async () => {
     if (!name || !price) {
       alert("اكتب اسم وسعر المنتج");
@@ -66,7 +62,6 @@ export default function AdminPage() {
     }
 
     if (editId) {
-      // تعديل
       await supabase
         .from("products")
         .update({
@@ -76,32 +71,22 @@ export default function AdminPage() {
         })
         .eq("id", editId);
     } else {
-      // إضافة
       if (!imageUrl) {
         alert("اختر صورة للمنتج");
         return;
       }
-
-      await supabase.from("products").insert([
-        {
-          name,
-          price: Number(price),
-          image_url: imageUrl,
-        },
-      ]);
+      await supabase.from("products").insert([{ name, price: Number(price), image_url: imageUrl }]);
     }
 
     resetForm();
     getProducts();
   };
 
-  // حذف منتج
   const deleteProduct = async (id: string) => {
     await supabase.from("products").delete().eq("id", id);
     getProducts();
   };
 
-  // تعبئة الفورم لتعديل المنتج
   const editProduct = (p: Product) => {
     setEditId(p.id);
     setName(p.name);
@@ -115,51 +100,24 @@ export default function AdminPage() {
     setImage(null);
   };
 
+  if (loading) return <p className="p-6">جاري التحقق من صلاحية الوصول...</p>;
+
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <h1 className="text-3xl font-bold mb-6 text-[#7f5c7e]">لوحة تحكم الأدمن</h1>
-
-      {/* نموذج إضافة / تعديل المنتج */}
+      {/* نموذج إضافة / تعديل */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold mb-4">{editId ? "تعديل منتج" : "إضافة منتج"}</h2>
 
-        <input
-          className="border border-gray-300 rounded p-2 mb-3 w-full"
-          placeholder="اسم المنتج"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <input
-          className="border border-gray-300 rounded p-2 mb-3 w-full"
-          placeholder="سعر المنتج"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="mb-3"
-        />
+        <input className="border border-gray-300 rounded p-2 mb-3 w-full" placeholder="اسم المنتج" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="border border-gray-300 rounded p-2 mb-3 w-full" placeholder="سعر المنتج" value={price} onChange={(e) => setPrice(e.target.value)} />
+        <input type="file" accept="image/*" onChange={handleFileChange} className="mb-3" />
 
         <div className="flex gap-2">
-          <button
-            className="bg-[#7f5c7e] text-white px-4 py-2 rounded hover:bg-[#6b4c6a]"
-            onClick={saveProduct}
-          >
+          <button className="bg-[#7f5c7e] text-white px-4 py-2 rounded hover:bg-[#6b4c6a]" onClick={saveProduct}>
             {editId ? "حفظ التعديل" : "إضافة المنتج"}
           </button>
-
-          {editId && (
-            <button
-              className="border border-gray-400 text-gray-700 px-4 py-2 rounded hover:bg-gray-100"
-              onClick={resetForm}
-            >
-              إلغاء
-            </button>
-          )}
+          {editId && <button className="border border-gray-400 text-gray-700 px-4 py-2 rounded hover:bg-gray-100" onClick={resetForm}>إلغاء</button>}
         </div>
       </div>
 
@@ -170,21 +128,9 @@ export default function AdminPage() {
             <img src={p.image_url} alt={p.name} className="w-full h-48 object-cover rounded mb-2" />
             <h3 className="font-semibold text-lg">{p.name}</h3>
             <p className="text-gray-700 mb-2">{p.price} د.ل</p>
-
             <div className="flex gap-2">
-              <button
-                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                onClick={() => editProduct(p)}
-              >
-                تعديل
-              </button>
-
-              <button
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                onClick={() => deleteProduct(p.id)}
-              >
-                حذف
-              </button>
+              <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600" onClick={() => editProduct(p)}>تعديل</button>
+              <button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600" onClick={() => deleteProduct(p.id)}>حذف</button>
             </div>
           </div>
         ))}
