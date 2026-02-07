@@ -16,46 +16,32 @@ export function useAuth() {
 
   useEffect(() => {
     const init = async () => {
-      // جلب الجلسة مباشرة من Supabase
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user?.email === ADMIN_EMAIL) {
-        setUser({ email: ADMIN_EMAIL });
-      } else {
-        setUser(null);
+      const { data } = await supabase.auth.getUser();
+      if (data.user && data.user.email === ADMIN_EMAIL) {
+        setUser({ email: data.user.email });
       }
       setLoading(false);
     };
+
     init();
 
-    // استماع لتغير حالة الجلسة
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user?.email === ADMIN_EMAIL) {
-        setUser({ email: ADMIN_EMAIL });
+        setUser({ email: session.user.email });
       } else {
         setUser(null);
       }
-      setLoading(false);
     });
 
     return () => listener.subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { success: false, message: error.message };
+    if (data.user?.email !== ADMIN_EMAIL) return { success: false, message: "هذا المستخدم ليس الأدمن" };
 
-    if (error) {
-      setLoading(false);
-      return { success: false, message: error.message };
-    }
-
-    if (data.user?.email !== ADMIN_EMAIL) {
-      setLoading(false);
-      return { success: false, message: "هذا المستخدم ليس الأدمن" };
-    }
-
-    setUser({ email: ADMIN_EMAIL });
-    setLoading(false);
+    setUser({ email: data.user.email });
     return { success: true, message: "تم تسجيل الدخول" };
   };
 
