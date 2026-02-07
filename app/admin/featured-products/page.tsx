@@ -1,110 +1,102 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import Image from "next/image"
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image";
 
 interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  is_featured: boolean;
 }
 
 export default function FeaturedProductsAdminPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [allProducts, setAllProducts] = useState<Product[]>([])
-  const MAX_FEATURED = 20
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const fetchFeatured = async () => {
-    const { data } = await supabase
+  const fetchFeaturedProducts = async () => {
+    setLoading(true);
+
+    const { data, error } = await supabase
       .from("products")
-      .select("id, name, price, image")
+      .select("id, name, price, image, is_featured")
       .eq("is_featured", true)
+      .order("created_at", { ascending: false });
 
-    setProducts(data || [])
-  }
-
-  const fetchAllProducts = async () => {
-    const { data } = await supabase
-      .from("products")
-      .select("id, name, price, image")
-      .eq("is_featured", false)
-
-    setAllProducts(data || [])
-  }
-
-  useEffect(() => {
-    fetchFeatured()
-    fetchAllProducts()
-  }, [])
-
-  const addToFeatured = async (id: string) => {
-    if (products.length >= MAX_FEATURED) {
-      alert("وصلت للحد الأقصى من المنتجات المميزة")
-      return
+    if (error) {
+      alert("Error fetching featured products: " + error.message);
+      setProducts([]);
+    } else {
+      setProducts(data as Product[]);
     }
 
-    await supabase
-      .from("products")
-      .update({ is_featured: true })
-      .eq("id", id)
+    setLoading(false);
+  };
 
-    fetchFeatured()
-    fetchAllProducts()
-  }
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, []);
 
   const removeFromFeatured = async (id: string) => {
-    await supabase
+    const confirmRemove = confirm("Remove this product from featured?");
+    if (!confirmRemove) return;
+
+    const { error } = await supabase
       .from("products")
       .update({ is_featured: false })
-      .eq("id", id)
+      .eq("id", id);
 
-    fetchFeatured()
-    fetchAllProducts()
-  }
+    if (error) {
+      alert("Error updating product: " + error.message);
+    } else {
+      fetchFeaturedProducts();
+    }
+  };
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        المنتجات المميزة ({products.length}/{MAX_FEATURED})
-      </h1>
+      <h1 className="text-2xl font-bold mb-6">Featured Products</h1>
 
-      {/* المنتجات المميزة */}
-      <div className="grid md:grid-cols-4 gap-4 mb-10">
-        {products.map(p => (
-          <div key={p.id} className="border p-3 rounded">
-            {p.image && (
-              <Image src={p.image} alt={p.name} width={150} height={150} />
-            )}
-            <h2 className="font-bold">{p.name}</h2>
-            <p>{p.price}</p>
-            <button
-              onClick={() => removeFromFeatured(p.id)}
-              className="bg-red-600 text-white px-3 py-1 rounded mt-2 w-full"
+      {loading ? (
+        <p>Loading...</p>
+      ) : products.length === 0 ? (
+        <p>No featured products.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="border rounded p-4 shadow relative"
             >
-              إزالة من المميز
-            </button>
-          </div>
-        ))}
-      </div>
+              <span className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+                ⭐ Featured
+              </span>
 
-      <h2 className="text-xl font-bold mb-2">إضافة منتج للمميز</h2>
+              {product.image && (
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  width={200}
+                  height={200}
+                  className="mb-2"
+                />
+              )}
 
-      {/* كل المنتجات */}
-      <div className="grid md:grid-cols-4 gap-4">
-        {allProducts.map(p => (
-          <div key={p.id} className="border p-3 rounded">
-            <h2 className="font-bold">{p.name}</h2>
-            <button
-              onClick={() => addToFeatured(p.id)}
-              className="bg-green-600 text-white px-3 py-1 rounded mt-2 w-full"
-            >
-              إضافة للمميز
-            </button>
-          </div>
-        ))}
-      </div>
+              <h2 className="font-bold">{product.name}</h2>
+              <p className="mb-3">Price: {product.price}</p>
+
+              <button
+                onClick={() => removeFromFeatured(product.id)}
+                className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+              >
+                Remove from Featured
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-  )
+  );
 }
