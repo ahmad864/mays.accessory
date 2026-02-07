@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-store";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, user } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,11 +26,6 @@ export default function LoginPage() {
     setTimeout(() => setMessage(""), 5000);
   };
 
-  useEffect(() => {
-    // إذا كان الأدمن مسجل مسبقاً، تحويله مباشرة
-    if (user) router.push("/admin");
-  }, [user, router]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -40,7 +35,7 @@ export default function LoginPage() {
 
     if (result.success) {
       showMessage(result.message, "success");
-      router.push("/admin"); // تحويل مباشرة للأدمن
+      router.push("/admin"); // توجيه مباشرة للأدمن
     } else {
       showMessage(result.message, "error");
     }
@@ -62,8 +57,8 @@ export default function LoginPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>تسجيل دخول الأدمن</CardTitle>
-            <CardDescription>أدخل بريد الأدمن وكلمة المرور للوصول إلى لوحة التحكم</CardDescription>
+            <CardTitle>تسجيل دخول الإدمن</CardTitle>
+            <CardDescription>أدخل بريد الإدمن وكلمة المرور للوصول إلى لوحة التحكم</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -74,7 +69,7 @@ export default function LoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="أدخل بريد الأدمن"
+                    placeholder="أدخل بريد الإدمن"
                     className="pl-10"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
