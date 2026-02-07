@@ -13,7 +13,7 @@ interface Product {
   image_url: string;
 }
 
-const categories = ["إحلاق", "خواتم", "أساور", "سلاسل", "نظارات", "ساعات"];
+const categories = ["أحلاق", "خواتم", "اساور", "سلاسل", "نظارات", "ساعات"];
 
 export default function AdminPage() {
   const router = useRouter();
