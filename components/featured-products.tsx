@@ -4,70 +4,72 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Heart, ShoppingBag, AlertTriangle, Plus, Minus } from "lucide-react"
+import { Heart, ShoppingBag, AlertTriangle } from "lucide-react"
 import { useCart } from "@/lib/cart-store"
 import { useCurrency } from "@/lib/currency-store"
 import { useFavorites } from "@/lib/favorites-store"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 
+interface Product {
+  id: number
+  name: string
+  price: number
+  image_url: string
+  stock: number
+  is_new: boolean
+}
+
 export function FeaturedProducts() {
-  const [quantities, setQuantities] = useState<{ [key: number]: number }>({})
-  const [products, setProducts] = useState<any[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
   const { dispatch: cartDispatch } = useCart()
   const { convertPrice, getCurrencySymbol } = useCurrency()
   const { toggleFavorite, isFavorite } = useFavorites()
 
-  // ✅ جلب المنتجات المميزة فقط
+  // ✅ جلب المنتجات المميزة فقط من Supabase
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       setLoading(true)
 
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select("id, name, price, image_url, stock, is_new")
         .eq("is_featured", true)
         .order("created_at", { ascending: false })
         .limit(10)
 
       if (error) {
         console.error("Featured products error:", error.message)
+        setProducts([])
+      } else {
+        setProducts(data || [])
       }
 
-      setProducts(data || [])
       setLoading(false)
     }
 
     fetchFeaturedProducts()
   }, [])
 
-  const updateQuantity = (productId: number, change: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [productId]: Math.max(1, (prev[productId] || 1) + change),
-    }))
-  }
-
-  const addToCart = (product: any) => {
+  const addToCart = (product: Product) => {
     if (product.stock <= 0) return
 
-    const quantity = quantities[product.id] || 1
-    for (let i = 0; i < quantity; i++) {
-      cartDispatch({
-        type: "ADD_ITEM",
-        payload: {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image_url,
-        },
-      })
-    }
+    cartDispatch({
+      type: "ADD_ITEM",
+      payload: {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image_url,
+      },
+    })
+
     cartDispatch({ type: "TOGGLE_CART" })
   }
 
+  // ⏳ تحميل
   if (loading) {
     return (
       <section className="py-16 text-center text-muted-foreground">
@@ -76,9 +78,8 @@ export function FeaturedProducts() {
     )
   }
 
-  if (products.length === 0) {
-    return null // لا نعرض القسم إذا لا توجد منتجات مميزة
-  }
+  // ❌ لا نعرض القسم إذا لا توجد منتجات مميزة
+  if (products.length === 0) return null
 
   return (
     <section className="py-16 lg:py-24 bg-gradient-to-br from-purple-50/30 to-purple-100/20">
@@ -94,7 +95,10 @@ export function FeaturedProducts() {
 
         <div className="grid grid-cols-2 gap-4 md:gap-6">
           {products.map((product) => (
-            <Card key={product.id} className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all">
+            <Card
+              key={product.id}
+              className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all"
+            >
               <CardContent className="p-0">
                 <div className="relative aspect-square">
                   <img
@@ -109,10 +113,17 @@ export function FeaturedProducts() {
                         جديد
                       </Badge>
                     )}
+
                     {product.stock <= 5 && product.stock > 0 && (
                       <Badge variant="outline" className="text-xs">
                         <AlertTriangle className="w-2 h-2 mr-1" />
                         قليل
+                      </Badge>
+                    )}
+
+                    {product.stock === 0 && (
+                      <Badge variant="destructive" className="text-xs">
+                        نفد
                       </Badge>
                     )}
                   </div>
@@ -150,7 +161,7 @@ export function FeaturedProducts() {
                     onClick={() => addToCart(product)}
                   >
                     <ShoppingBag className="mr-2 h-4 w-4" />
-                    أضف للسلة
+                    {product.stock <= 0 ? "نفدت الكمية" : "أضف للسلة"}
                   </Button>
                 </div>
               </CardContent>
