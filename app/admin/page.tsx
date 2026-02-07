@@ -24,7 +24,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.replace("/login");
+        router.push("/login");
       } else {
         fetchProducts();
       }
@@ -81,12 +81,10 @@ export default function AdminPage() {
   };
 
   if (loading) return <p className="p-6">جاري التحقق من صلاحية الوصول...</p>;
-  if (!user) return null;
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <h1 className="text-3xl font-bold mb-6 text-[#7f5c7e]">لوحة تحكم الأدمن</h1>
-
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold mb-4">{editId ? "تعديل منتج" : "إضافة منتج"}</h2>
         <input className="border border-gray-300 rounded p-2 mb-3 w-full" placeholder="اسم المنتج" value={name} onChange={(e) => setName(e.target.value)} />
@@ -97,7 +95,6 @@ export default function AdminPage() {
           {editId && <button className="border border-gray-400 text-gray-700 px-4 py-2 rounded hover:bg-gray-100" onClick={resetForm}>إلغاء</button>}
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {products.map(p => (
           <div key={p.id} className="bg-white p-4 rounded shadow-md">
