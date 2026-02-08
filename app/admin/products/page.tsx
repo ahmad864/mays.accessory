@@ -10,13 +10,12 @@ interface Product {
   price: number;
   image_url: string;
   category: string;
-  low_stock: boolean;   // منتج جديد
-  is_featured: boolean; // منتج مميز
+  low_stock: boolean;    // 🆕 منتج جديد
+  is_featured: boolean;  // ⭐ منتج مميز
 }
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -32,10 +31,12 @@ export default function AdminProductsPage() {
   const categories = ["خواتم", "أحلاق", "اساور", "سلاسل", "ساعات", "نظارات"];
 
   const fetchProducts = async () => {
-    setLoading(true);
-    const { data } = await supabase.from("products").select("*").order("name");
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .order("name");
+
     setProducts((data as Product[]) ?? []);
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -58,9 +59,9 @@ export default function AdminProductsPage() {
     const ext = file.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${ext}`;
 
-    await supabase.storage.from("product-images").upload(fileName, file, {
-      upsert: true,
-    });
+    await supabase.storage
+      .from("product-images")
+      .upload(fileName, file, { upsert: true });
 
     const { data } = supabase.storage
       .from("product-images")
@@ -88,7 +89,10 @@ export default function AdminProductsPage() {
     };
 
     if (editingProduct) {
-      await supabase.from("products").update(payload).eq("id", editingProduct.id);
+      await supabase
+        .from("products")
+        .update(payload)
+        .eq("id", editingProduct.id);
     } else {
       await supabase.from("products").insert(payload);
     }
@@ -132,12 +136,12 @@ export default function AdminProductsPage() {
       </button>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="border p-4 rounded mb-6 space-y-2">
+        <form onSubmit={handleSubmit} className="border p-4 rounded mb-6 space-y-3">
           <input
             name="name"
-            placeholder="اسم المنتج"
             value={formData.name}
             onChange={handleChange}
+            placeholder="اسم المنتج"
             className="border p-2 w-full"
           />
 
@@ -157,32 +161,18 @@ export default function AdminProductsPage() {
           >
             <option value="">اختر الفئة</option>
             {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
 
-          {/* منتج جديد */}
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="low_stock"
-              checked={formData.low_stock}
-              onChange={handleChange}
-            />
-            منتج جديد 🆕
+          <label className="flex items-center gap-3">
+            <input type="checkbox" name="low_stock" checked={formData.low_stock} onChange={handleChange} />
+            🆕 منتج جديد
           </label>
 
-          {/* منتج مميز */}
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="is_featured"
-              checked={formData.is_featured}
-              onChange={handleChange}
-            />
-            منتج مميز ⭐
+          <label className="flex items-center gap-3">
+            <input type="checkbox" name="is_featured" checked={formData.is_featured} onChange={handleChange} />
+            ⭐ منتج مميز
           </label>
 
           <input type="file" onChange={handleChange} />
