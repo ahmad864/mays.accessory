@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CartDrawer } from "@/components/cart-drawer"
-import { Search, Menu, X, Heart } from "lucide-react"
+import { Menu, X, Heart } from "lucide-react"
 import { SearchBar } from "@/components/search-bar"
 import { useFavorites } from "@/lib/favorites-store"
 import { useAuth } from "@/lib/auth-store"
@@ -29,7 +29,7 @@ export function Header() {
             <Image
               src="/logo.png"
               alt="MISS Logo"
-              width={180}   // 6×1
+              width={180}
               height={30}
               className="hover:scale-105 transition-transform duration-200"
               priority
@@ -77,9 +77,17 @@ export function Header() {
 
           {/* ACTIONS */}
           <div className="flex items-center space-x-4">
-            <Link href="/account?tab=favorites">
+
+            {/* ❤️ FAVORITES — بدون تسجيل دخول */}
+            <Link href="/favorites">
               <Button variant="ghost" size="icon" className="relative">
-                <Heart className={`h-5 w-5 ${favoritesCount > 0 ? "fill-[#7f5c7e] text-[#7f5c7e]" : ""}`} />
+                <Heart
+                  className={`h-5 w-5 ${
+                    favoritesCount > 0
+                      ? "fill-[#7f5c7e] text-[#7f5c7e]"
+                      : ""
+                  }`}
+                />
                 {favoritesCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-[#7f5c7e] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {favoritesCount}
@@ -88,6 +96,7 @@ export function Header() {
               </Button>
             </Link>
 
+            {/* 🛒 ORDERS / CART */}
             <CartDrawer />
 
             {/* MOBILE MENU BUTTON */}
