@@ -47,12 +47,13 @@ export default function ProductsPage() {
     }
   }, [searchParams])
 
-  /* ✅ البحث الذكي المرتبط بالفئات */
+  /* ✅ البحث مرتبط فقط بفئات الصفحة الرئيسية (بدون المنتجات المميزة) */
   const filteredProducts = products
+    .filter((product) => product.isSale !== true) // ⭐ هذا هو السطر المهم
     .filter((product) => {
       const search = searchTerm.trim()
 
-      // 🔍 هل المستخدم كتب اسم فئة؟
+      // 🔍 هل البحث باسم فئة؟
       const isCategorySearch = OFFICIAL_CATEGORIES.includes(search)
 
       if (isCategorySearch) {
