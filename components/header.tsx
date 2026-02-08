@@ -79,7 +79,7 @@ export function Header() {
           <div className="flex items-center space-x-4">
 
             {/* ❤️ FAVORITES — بدون تسجيل دخول */}
-            <Link href="/favorites">
+            <Link href="/account">
               <Button variant="ghost" size="icon" className="relative">
                 <Heart
                   className={`h-5 w-5 ${
