@@ -11,8 +11,6 @@ import { useCurrency } from "@/lib/currency-store"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-
-// ✅ الاستيراد الصحيح
 import { getProductsByCategory } from "@/lib/products-db"
 
 const categoryNames: { [key: string]: string } = {
@@ -30,14 +28,11 @@ export default function CategoryPage() {
 
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
-  // ✅ كميات المنتجات
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({})
 
   const { dispatch: cartDispatch } = useCart()
   const { convertPrice, getCurrencySymbol } = useCurrency()
 
-  // ✅ جلب المنتجات
   useEffect(() => {
     if (!slug) return
 
@@ -51,7 +46,6 @@ export default function CategoryPage() {
     fetchProducts()
   }, [slug])
 
-  // ✅ تغيير الكمية
   const updateQuantity = (productId: number, change: number, stock: number) => {
     setQuantities((prev) => {
       const current = prev[productId] || 1
@@ -63,12 +57,8 @@ export default function CategoryPage() {
     })
   }
 
-  // ✅ إضافة للسلة بالكمية
   const addToCart = (product: any) => {
-    if (product.stock <= 0) return
-
     const quantity = quantities[product.id] || 1
-
     for (let i = 0; i < quantity; i++) {
       cartDispatch({
         type: "ADD_ITEM",
@@ -80,7 +70,6 @@ export default function CategoryPage() {
         },
       })
     }
-
     cartDispatch({ type: "TOGGLE_CART" })
   }
 
@@ -88,7 +77,7 @@ export default function CategoryPage() {
     <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="py-16 lg:py-24">
+      <main className="py-16">
         <div className="container mx-auto px-4">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 mb-8 text-sm text-muted-foreground">
@@ -107,18 +96,6 @@ export default function CategoryPage() {
             </p>
           </div>
 
-          {loading && (
-            <div className="text-center py-16 text-muted-foreground">
-              جاري تحميل المنتجات...
-            </div>
-          )}
-
-          {!loading && products.length === 0 && (
-            <div className="text-center py-16">
-              لا توجد منتجات في هذه الفئة
-            </div>
-          )}
-
           {/* Products */}
           <div className="grid grid-cols-2 gap-4 md:gap-6">
             {products.map((product) => (
@@ -130,56 +107,61 @@ export default function CategoryPage() {
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
-
                     {product.is_new && (
-                      <Badge className="absolute top-2 left-2 bg-[#7f5c7e] text-white">
+                      <Badge className="absolute top-2 left-2 bg-[#7f5c7e] text-white text-xs">
                         جديد
                       </Badge>
                     )}
                   </div>
 
                   <div className="p-3 space-y-2">
-                    <h3 className="text-sm font-semibold">{product.name}</h3>
+                    <h3 className="text-sm font-semibold line-clamp-2">
+                      {product.name}
+                    </h3>
 
-                    <p className="text-[#7f5c7e] font-bold">
-                      {convertPrice(product.price)} {getCurrencySymbol()}
-                    </p>
+                    {/* السعر + المتوفر */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#7f5c7e] font-bold text-base">
+                        {convertPrice(product.price)} {getCurrencySymbol()}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        متوفر : {product.stock}
+                      </span>
+                    </div>
 
-                    <p className="text-xs text-muted-foreground">
-                      متوفر: {product.stock}
-                    </p>
-
-                    {/* ✅ التحكم بالكمية */}
+                    {/* التحكم بالكمية */}
                     {product.stock > 0 && (
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="icon"
+                          className="h-6 w-6"
                           onClick={() =>
                             updateQuantity(product.id, -1, product.stock)
                           }
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-3 w-3" />
                         </Button>
 
-                        <span className="min-w-[20px] text-center">
+                        <span className="text-sm min-w-[20px] text-center">
                           {quantities[product.id] || 1}
                         </span>
 
                         <Button
                           variant="outline"
                           size="icon"
+                          className="h-6 w-6"
                           onClick={() =>
                             updateQuantity(product.id, 1, product.stock)
                           }
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-3 w-3" />
                         </Button>
                       </div>
                     )}
 
                     <Button
-                      className="w-full"
+                      className="w-full h-9 text-sm"
                       disabled={product.stock <= 0}
                       onClick={() => addToCart(product)}
                     >
