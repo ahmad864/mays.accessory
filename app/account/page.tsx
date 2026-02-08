@@ -26,7 +26,7 @@ export default function AccountPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-background py-10">
+      <div className="bg-background pt-6 pb-10">
         <div className="container mx-auto px-4 max-w-6xl">
           <Tabs
             defaultValue={defaultTab}
