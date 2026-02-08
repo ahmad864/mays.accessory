@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useReducer } from "react"
 import { supabase } from "@/lib/supabase"
 
-/* ✅ الفئات الرسمية للموقع (مثل الصفحة الرئيسية) */
+/* ✅ الفئات الرسمية للموقع */
 const OFFICIAL_CATEGORIES = [
   "خواتم",
   "أحلاق",
@@ -14,7 +14,7 @@ const OFFICIAL_CATEGORIES = [
   "نظارات",
 ]
 
-/* ✅ تحويل أي قيمة قادمة من قاعدة البيانات إلى عربي */
+/* ✅ توحيد أسماء الفئات */
 const CATEGORY_MAP: Record<string, string> = {
   rings: "خواتم",
   ring: "خواتم",
@@ -35,7 +35,6 @@ const CATEGORY_MAP: Record<string, string> = {
   glasses: "نظارات",
   sunglasses: "نظارات",
 
-  // العربية (كما هي)
   خواتم: "خواتم",
   أحلاق: "أحلاق",
   اساور: "اساور",
@@ -54,7 +53,7 @@ export interface Product {
   rating: number
   reviews: number
   isNew: boolean
-  isSale: boolean
+  isSale: boolean // ⭐ المنتج المميز
   stock: number
   description?: string
 }
@@ -84,7 +83,7 @@ function productsReducer(
       return {
         ...state,
         products: action.payload,
-        categories: OFFICIAL_CATEGORIES, // ⭐ فئات ثابتة
+        categories: OFFICIAL_CATEGORIES,
         loading: false,
       }
 
@@ -113,20 +112,21 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         .order("name")
 
       if (!error && data) {
-        const mappedProducts: Product[] = data
-          .filter((p: any) => p.category !== "featured") // 🚫 لا تعتبر فئة
-          .map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            images: [p.image_url],
-            category: CATEGORY_MAP[p.category] ?? "خواتم", // ⭐ توحيد عربي
-            rating: 5,
-            reviews: 0,
-            isNew: p.low_stock ?? false,
-            isSale: false,
-            stock: p.low_stock ? 3 : 10,
-          }))
+        const mappedProducts: Product[] = data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          images: [p.image_url],
+          category: CATEGORY_MAP[p.category] ?? "خواتم",
+          rating: 5,
+          reviews: 0,
+          isNew: p.low_stock ?? false,
+
+          // ⭐⭐⭐ هذا هو المهم
+          isSale: p.is_featured === true,
+
+          stock: p.low_stock ? 3 : 10,
+        }))
 
         dispatch({ type: "SET_PRODUCTS", payload: mappedProducts })
       }
