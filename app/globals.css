@@ -7,15 +7,15 @@
   --background: oklch(1 0 0);
   --foreground: oklch(0.15 0 0);
 
-  --card: oklch(0.98 0 0);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0 0);
 
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
 
-  /* ✅ اللون البنفسجي الجديد */
-  --primary: #B887C6;
-  --primary-foreground: #ffffff;
+  /* ✅ نفس اللون #B887C6 بدون أي تغيير */
+  --primary: oklch(from #B887C6 l c h);
+  --primary-foreground: oklch(1 0 0);
 
   --secondary: oklch(0.95 0 0);
   --secondary-foreground: oklch(0.15 0 0);
@@ -23,12 +23,12 @@
   --muted: oklch(0.96 0 0);
   --muted-foreground: oklch(0.45 0 0);
 
-  --accent: #B887C6;
-  --accent-foreground: #ffffff;
+  --accent: oklch(from #B887C6 l c h);
+  --accent-foreground: oklch(1 0 0);
 
   --border: oklch(0.9 0 0);
   --input: oklch(1 0 0);
-  --ring: #B887C6;
+  --ring: oklch(from #B887C6 l c h);
 
   --radius: 0.5rem;
 }
@@ -43,29 +43,35 @@
   --popover: oklch(0.1 0 0);
   --popover-foreground: oklch(0.95 0 0);
 
-  /* ✅ نفس اللون بالداكن */
-  --primary: #B887C6;
-  --primary-foreground: #1f1f1f;
+  /* نفس اللون تمامًا في الداكن */
+  --primary: oklch(from #B887C6 l c h);
+  --primary-foreground: oklch(0.1 0 0);
 
-  --secondary: oklch(0.2 0 0);
-  --secondary-foreground: oklch(0.95 0 0);
-
-  --accent: #B887C6;
-  --accent-foreground: #1f1f1f;
+  --accent: oklch(from #B887C6 l c h);
+  --accent-foreground: oklch(0.1 0 0);
 
   --border: oklch(0.2 0 0);
   --input: oklch(0.2 0 0);
-  --ring: #B887C6;
+  --ring: oklch(from #B887C6 l c h);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
+  --color-input: var(--input);
   --color-ring: var(--ring);
 }
 
