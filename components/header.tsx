@@ -23,15 +23,11 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 cursor-pointer">
-            <span
-              className="text-4xl font-black bg-gradient-to-r from-[#7f5c7e] to-purple-700 bg-clip-text text-transparent font-cinzel-decorative tracking-wider drop-shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95"
-              style={{
-                textShadow: "3px 3px 6px rgba(127, 92, 126, 0.4)",
-                fontFamily: "var(--font-cinzel-decorative)",
-              }}
-            >
-              MISS
-            </span>
+            <img
+  src="/logo.svg"
+  alt="MISS"
+  className="h-12 md:h-14 w-auto object-contain drop-shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95"
+/>
           </Link>
 
           <div className="hidden md:flex flex-1 justify-center mx-8">
