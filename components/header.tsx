@@ -23,13 +23,20 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 cursor-pointer">
-            <img
-  src="/logo.svg"
-  alt="MISS"
-  className="h-12 md:h-14 w-auto object-contain drop-shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95"
-/>
-          </Link>
+            import Image from "next/image"
+import Link from "next/link"
 
+<Link href="/" className="flex items-center">
+  <Image
+    src="/logo.png"
+    alt="MISS Logo"
+    width={180}   // العرض
+    height={30}   // الارتفاع → نسبة 6×1
+    className="hover:scale-105 transition-transform duration-200"
+    priority
+  />
+</Link>
+      
           <div className="hidden md:flex flex-1 justify-center mx-8">
             <SearchBar />
           </div>
