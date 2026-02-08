@@ -32,7 +32,10 @@ export default function AdminProductsPage() {
   const categories = ["خواتم", "أحلاق", "اساور", "سلاسل", "ساعات", "نظارات"];
 
   const fetchProducts = async () => {
-    const { data } = await supabase.from("products").select("*").order("name");
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .order("name");
     setProducts((data as Product[]) ?? []);
   };
 
@@ -69,7 +72,6 @@ export default function AdminProductsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.imageFile) return;
 
     const imageUrl = await uploadImage(formData.imageFile);
@@ -95,9 +97,13 @@ export default function AdminProductsPage() {
     fetchProducts();
   };
 
+  // ✅ الفلترة الصحيحة حسب الوضع
+  const filteredProducts = products.filter((p) =>
+    mode === "category" ? !p.is_featured : p.is_featured
+  );
+
   return (
     <div className="p-6">
-      {/* العنوان */}
       <h1 className="text-2xl font-bold mb-4">لوحة تحكم الأدمن</h1>
 
       {/* الأزرار */}
@@ -191,7 +197,7 @@ export default function AdminProductsPage() {
 
       {/* عرض المنتجات */}
       <div className="grid md:grid-cols-3 gap-4">
-        {products.map((p) => (
+        {filteredProducts.map((p) => (
           <div key={p.id} className="border p-4 rounded">
             {p.is_featured && <span>⭐ مميز</span>}
             <Image src={p.image_url} alt={p.name} width={200} height={200} />
