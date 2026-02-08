@@ -19,6 +19,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     price: 1,
@@ -45,15 +46,22 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleChange = (e: any) => {
-    const { name, value, type, checked, files } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const target = e.target as HTMLInputElement;
+    const { name, type, checked, value, files } = target;
 
-    if (type === "checkbox")
-      setFormData((p) => ({ ...p, [name]: checked }));
-    else if (type === "file")
-      setFormData((p) => ({ ...p, imageFile: files?.[0] ?? null }));
-    else
-      setFormData((p) => ({ ...p, [name]: value }));
+    if (type === "checkbox") {
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+    } else if (type === "file") {
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: files && files[0] ? files[0] : null,
+      }));
+    } else if (type === "number") {
+      setFormData((prev) => ({ ...prev, [name]: Number(value) }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const uploadImage = async (file: File) => {
@@ -85,18 +93,30 @@ export default function AdminProductsPage() {
       price: formData.price,
       category: formData.category,
       low_stock: formData.low_stock,
-      is_featured: formData.is_featured,
+      is_featured: formData.is_featured, // ⭐ مهم
       image_url: imageUrl,
     };
 
     if (editingProduct) {
-      await supabase.from("products").update(payload).eq("id", editingProduct.id);
+      await supabase
+        .from("products")
+        .update(payload)
+        .eq("id", editingProduct.id);
     } else {
       await supabase.from("products").insert(payload);
     }
 
-    setShowForm(false);
+    setFormData({
+      name: "",
+      price: 1,
+      category: "",
+      low_stock: false,
+      is_featured: false,
+      imageFile: null,
+    });
+
     setEditingProduct(null);
+    setShowForm(false);
     fetchProducts();
   };
 
@@ -126,16 +146,44 @@ export default function AdminProductsPage() {
 
       {showForm && (
         <form onSubmit={handleSubmit} className="border p-4 rounded mb-6">
-          <input name="name" placeholder="اسم المنتج" onChange={handleChange} className="border p-2 w-full mb-2" />
-          <input name="price" type="number" onChange={handleChange} className="border p-2 w-full mb-2" />
+          <input
+            name="name"
+            value={formData.name}
+            placeholder="اسم المنتج"
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+            required
+          />
 
-          <select name="category" onChange={handleChange} className="border p-2 w-full mb-2">
+          <input
+            name="price"
+            type="number"
+            value={formData.price}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+            required
+          />
+
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+            required
+          >
             <option value="">اختر الفئة</option>
-            {categories.map((c) => <option key={c}>{c}</option>)}
+            {categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
 
           <label className="flex gap-2 mb-2">
-            <input type="checkbox" name="is_featured" onChange={handleChange} />
+            <input
+              type="checkbox"
+              name="is_featured"
+              checked={formData.is_featured}
+              onChange={handleChange}
+            />
             منتج مميز ⭐
           </label>
 
@@ -147,27 +195,39 @@ export default function AdminProductsPage() {
         </form>
       )}
 
-      <div className="grid md:grid-cols-3 gap-4">
-        {products.map((p) => (
-          <div key={p.id} className="border p-4 rounded relative">
-            {p.is_featured && (
-              <span className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
-                ⭐ مميز
-              </span>
-            )}
+      {loading ? (
+        <p>جارٍ التحميل...</p>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-4">
+          {products.map((p) => (
+            <div key={p.id} className="border p-4 rounded relative">
+              {p.is_featured && (
+                <span className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+                  ⭐ مميز
+                </span>
+              )}
 
-            <Image src={p.image_url} alt={p.name} width={200} height={200} />
-            <h2 className="font-bold mt-2">{p.name}</h2>
+              {p.image_url && (
+                <Image
+                  src={p.image_url}
+                  alt={p.name}
+                  width={200}
+                  height={200}
+                />
+              )}
 
-            <button
-              onClick={() => handleEdit(p)}
-              className="bg-yellow-500 text-white px-2 py-1 rounded mt-2"
-            >
-              تعديل
-            </button>
-          </div>
-        ))}
-      </div>
+              <h2 className="font-bold mt-2">{p.name}</h2>
+
+              <button
+                onClick={() => handleEdit(p)}
+                className="bg-yellow-500 text-white px-2 py-1 rounded mt-2"
+              >
+                تعديل
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
