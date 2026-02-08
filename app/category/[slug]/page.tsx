@@ -5,10 +5,9 @@ import { useParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingBag, ArrowRight } from "lucide-react"
+import { ShoppingBag, ArrowRight, Plus, Minus } from "lucide-react"
 import { useCart } from "@/lib/cart-store"
 import { useCurrency } from "@/lib/currency-store"
-import { useFavorites } from "@/lib/favorites-store"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -32,39 +31,55 @@ export default function CategoryPage() {
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  // ✅ كميات المنتجات
+  const [quantities, setQuantities] = useState<{ [key: number]: number }>({})
+
   const { dispatch: cartDispatch } = useCart()
   const { convertPrice, getCurrencySymbol } = useCurrency()
-  const { toggleFavorite, isFavorite } = useFavorites()
 
-  // ✅ جلب المنتجات من Supabase
+  // ✅ جلب المنتجات
   useEffect(() => {
     if (!slug) return
 
     const fetchProducts = async () => {
       setLoading(true)
-      console.log("CATEGORY SLUG:", slug)
-
       const data = await getProductsByCategory(slug)
       setProducts(data)
-
       setLoading(false)
     }
 
     fetchProducts()
   }, [slug])
 
+  // ✅ تغيير الكمية
+  const updateQuantity = (productId: number, change: number, stock: number) => {
+    setQuantities((prev) => {
+      const current = prev[productId] || 1
+      const next = current + change
+      return {
+        ...prev,
+        [productId]: Math.min(Math.max(1, next), stock),
+      }
+    })
+  }
+
+  // ✅ إضافة للسلة بالكمية
   const addToCart = (product: any) => {
     if (product.stock <= 0) return
 
-    cartDispatch({
-      type: "ADD_ITEM",
-      payload: {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image_url,
-      },
-    })
+    const quantity = quantities[product.id] || 1
+
+    for (let i = 0; i < quantity; i++) {
+      cartDispatch({
+        type: "ADD_ITEM",
+        payload: {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image_url,
+        },
+      })
+    }
 
     cartDispatch({ type: "TOGGLE_CART" })
   }
@@ -123,7 +138,7 @@ export default function CategoryPage() {
                     )}
                   </div>
 
-                  <div className="p-3">
+                  <div className="p-3 space-y-2">
                     <h3 className="text-sm font-semibold">{product.name}</h3>
 
                     <p className="text-[#7f5c7e] font-bold">
@@ -134,13 +149,42 @@ export default function CategoryPage() {
                       متوفر: {product.stock}
                     </p>
 
+                    {/* ✅ التحكم بالكمية */}
+                    {product.stock > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() =>
+                            updateQuantity(product.id, -1, product.stock)
+                          }
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+
+                        <span className="min-w-[20px] text-center">
+                          {quantities[product.id] || 1}
+                        </span>
+
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() =>
+                            updateQuantity(product.id, 1, product.stock)
+                          }
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+
                     <Button
-                      className="w-full mt-2"
+                      className="w-full"
                       disabled={product.stock <= 0}
                       onClick={() => addToCart(product)}
                     >
                       <ShoppingBag className="mr-2 h-4 w-4" />
-                      أضف للسلة
+                      {product.stock <= 0 ? "نفدت الكمية" : "أضف للسلة"}
                     </Button>
                   </div>
                 </CardContent>
