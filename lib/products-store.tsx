@@ -4,16 +4,38 @@ import type React from "react"
 import { createContext, useContext, useEffect, useReducer } from "react"
 import { supabase } from "@/lib/supabase"
 
-/* ✅ تحويل الفئات من إنجليزي → عربي */
+/* ✅ الفئات الرسمية للموقع (مثل الصفحة الرئيسية) */
+const OFFICIAL_CATEGORIES = [
+  "خواتم",
+  "أحلاق",
+  "اساور",
+  "سلاسل",
+  "ساعات",
+  "نظارات",
+]
+
+/* ✅ تحويل أي قيمة قادمة من قاعدة البيانات إلى عربي */
 const CATEGORY_MAP: Record<string, string> = {
   rings: "خواتم",
-  earrings: "أحلاق",
-  bracelets: "اساور",
-  chains: "سلاسل",
-  watches: "ساعات",
-  glasses: "نظارات",
+  ring: "خواتم",
 
-  // لو كانت أصلًا عربية
+  earrings: "أحلاق",
+  earring: "أحلاق",
+
+  bracelets: "اساور",
+  bracelet: "اساور",
+
+  necklaces: "سلاسل",
+  necklace: "سلاسل",
+  chains: "سلاسل",
+
+  watches: "ساعات",
+  watch: "ساعات",
+
+  glasses: "نظارات",
+  sunglasses: "نظارات",
+
+  // العربية (كما هي)
   خواتم: "خواتم",
   أحلاق: "أحلاق",
   اساور: "اساور",
@@ -49,7 +71,7 @@ type ProductsAction =
 
 const initialState: ProductsState = {
   products: [],
-  categories: [],
+  categories: OFFICIAL_CATEGORIES,
   loading: true,
 }
 
@@ -58,18 +80,13 @@ function productsReducer(
   action: ProductsAction
 ): ProductsState {
   switch (action.type) {
-    case "SET_PRODUCTS": {
-      const categories = Array.from(
-        new Set(action.payload.map((p) => p.category))
-      )
-
+    case "SET_PRODUCTS":
       return {
         ...state,
         products: action.payload,
-        categories,
+        categories: OFFICIAL_CATEGORIES, // ⭐ فئات ثابتة
         loading: false,
       }
-    }
 
     case "SET_LOADING":
       return { ...state, loading: action.payload }
@@ -96,18 +113,20 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         .order("name")
 
       if (!error && data) {
-        const mappedProducts: Product[] = data.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          images: [p.image_url],
-          category: CATEGORY_MAP[p.category] ?? p.category, // ⭐ هنا الحل
-          rating: 5,
-          reviews: 0,
-          isNew: p.low_stock ?? false,
-          isSale: false,
-          stock: p.low_stock ? 3 : 10,
-        }))
+        const mappedProducts: Product[] = data
+          .filter((p: any) => p.category !== "featured") // 🚫 لا تعتبر فئة
+          .map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            images: [p.image_url],
+            category: CATEGORY_MAP[p.category] ?? "خواتم", // ⭐ توحيد عربي
+            rating: 5,
+            reviews: 0,
+            isNew: p.low_stock ?? false,
+            isSale: false,
+            stock: p.low_stock ? 3 : 10,
+          }))
 
         dispatch({ type: "SET_PRODUCTS", payload: mappedProducts })
       }
