@@ -68,6 +68,11 @@ export default function AdminPage() {
       return
     }
 
+    if (!image && !editId) {
+      alert("اختر صورة")
+      return
+    }
+
     let imageUrl: string | null = null
 
     if (image) {
@@ -86,11 +91,6 @@ export default function AdminPage() {
       imageUrl = data.publicUrl
     }
 
-    if (!imageUrl) {
-      alert("اختر صورة")
-      return
-    }
-
     const payload =
       mode === "category"
         ? {
@@ -99,16 +99,16 @@ export default function AdminPage() {
             category: categoryMap[category],
             stock,
             is_new: isNew,
-            image_url: imageUrl,
+            ...(imageUrl && { image_url: imageUrl }),
             is_featured: false,
           }
         : {
             name,
             price: Number(price),
             category: "featured",
-            stock: 0,
+            stock, // ✅ الكمية للمميز
             is_new: false,
-            image_url: imageUrl,
+            ...(imageUrl && { image_url: imageUrl }),
             is_featured: true,
           }
 
@@ -131,6 +131,7 @@ export default function AdminPage() {
     setEditId(p.id)
     setName(p.name)
     setPrice(p.price.toString())
+    setStock(p.stock)
     setImage(null)
 
     if (p.is_featured) {
@@ -142,7 +143,6 @@ export default function AdminPage() {
           (k) => categoryMap[k] === p.category
         ) || categories[0]
       )
-      setStock(p.stock)
       setIsNew(p.is_new)
     }
   }
@@ -157,7 +157,6 @@ export default function AdminPage() {
     setImage(null)
   }
 
-  // ✅ الفلترة الصحيحة حسب الوضع
   const filteredProducts = products.filter((p) =>
     mode === "featured" ? p.is_featured : !p.is_featured
   )
@@ -213,6 +212,16 @@ export default function AdminPage() {
           onChange={(e) => setPrice(e.target.value)}
         />
 
+        {/* ✅ الكمية (للفئة والمميز) */}
+        <input
+          type="number"
+          min={0}
+          className="border p-2 mb-3 w-full"
+          placeholder="الكمية"
+          value={stock}
+          onChange={(e) => setStock(Number(e.target.value))}
+        />
+
         {mode === "category" && (
           <>
             <select
@@ -224,13 +233,6 @@ export default function AdminPage() {
                 <option key={c}>{c}</option>
               ))}
             </select>
-
-            <input
-              type="number"
-              className="border p-2 mb-3 w-full"
-              value={stock}
-              onChange={(e) => setStock(Number(e.target.value))}
-            />
 
             <label className="flex gap-2 mb-3">
               <input
@@ -266,6 +268,7 @@ export default function AdminPage() {
             <img src={p.image_url} className="w-full h-40 object-cover mb-2" />
             <h3 className="font-semibold">{p.name}</h3>
             <p>السعر: {p.price}</p>
+            <p>الكمية: {p.stock}</p>
             {!p.is_featured && <p>الفئة: {p.category}</p>}
 
             <div className="flex gap-2 mt-3">
