@@ -10,7 +10,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="mx-auto">
               <span
-                className="text-7xl font-black bg-gradient-to-r from-[#7f5c7e] to-purple-700 bg-clip-text text-transparent font-cinzel-decorative tracking-wider drop-shadow-lg"
+                className="text-5xl font-black bg-gradient-to-r from-[#7f5c7e] to-purple-700 bg-clip-text text-transparent font-cinzel-decorative tracking-wider drop-shadow-lg"
                 style={{
                   textShadow: "3px 3px 6px rgba(127, 92, 126, 0.4)",
                   fontFamily: "var(--font-cinzel-decorative)",
