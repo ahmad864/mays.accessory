@@ -15,28 +15,32 @@ interface Product {
 
 export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([])
-  const [limit, setLimit] = useState(10)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchFeatured = async () => {
       setLoading(true)
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("products")
         .select("id, name, price, image_url")
         .eq("is_featured", true)
         .order("created_at", { ascending: false })
-        .limit(limit)
 
-      setProducts(data || [])
+      if (!error) {
+        setProducts(data || [])
+      }
+
       setLoading(false)
     }
 
     fetchFeatured()
-  }, [limit])
+  }, [])
 
+  // ⏳ تحميل
   if (loading) return null
+
+  // ❌ لا نعرض القسم إذا لا توجد منتجات مميزة
   if (products.length === 0) return null
 
   return (
@@ -52,26 +56,21 @@ export function FeaturedProducts() {
               <img
                 src={p.image_url || "/placeholder.svg"}
                 alt={p.name}
-                className="w-full h-40 object-cover"
+                className="w-full h-40 object-cover rounded-md"
               />
+
               <h3 className="mt-2 font-semibold">{p.name}</h3>
               <p className="font-bold">{p.price}</p>
 
               <Link href={`/product/${p.id}`}>
-                <Button className="w-full mt-2">عرض المنتج</Button>
+                <Button className="w-full mt-2">
+                  عرض المنتج
+                </Button>
               </Link>
             </CardContent>
           </Card>
         ))}
       </div>
-
-      {products.length >= limit && (
-        <div className="text-center mt-8">
-          <Button onClick={() => setLimit(limit + 10)}>
-            عرض منتجات أكثر
-          </Button>
-        </div>
-      )}
     </section>
   )
 }
