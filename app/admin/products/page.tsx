@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 
@@ -17,6 +17,10 @@ interface Product {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // 🔁 وضع الصفحة
+  const [mode, setMode] = useState<"category" | "featured">("category");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,6 +28,7 @@ export default function AdminProductsPage() {
     category: "",
     low_stock: false,
     is_featured: false,
+    imageFile: null as File | null,
   });
 
   const categories = ["خواتم", "أحلاق", "اساور", "سلاسل", "ساعات", "نظارات"];
@@ -38,25 +43,51 @@ export default function AdminProductsPage() {
   }, []);
 
   const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked, files } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    if (type === "checkbox") {
+      setFormData((p) => ({ ...p, [name]: checked }));
+    } else if (type === "file") {
+      setFormData((p) => ({ ...p, imageFile: files?.[0] ?? null }));
+    } else {
+      setFormData((p) => ({ ...p, [name]: value }));
+    }
+  };
+
+  const uploadImage = async (file: File) => {
+    const ext = file.name.split(".").pop();
+    const fileName = `${crypto.randomUUID()}.${ext}`;
+
+    await supabase.storage.from("product-images").upload(fileName, file, {
+      upsert: true,
+    });
+
+    const { data } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await supabase.from("products").insert({
+    let imageUrl = "";
+
+    if (formData.imageFile) {
+      imageUrl = await uploadImage(formData.imageFile);
+    }
+
+    const payload = {
       name: formData.name,
       price: formData.price,
-      category: formData.category,
-      low_stock: formData.low_stock,
-      is_featured: formData.is_featured,
-      image_url: "",
-    });
+      category: mode === "category" ? formData.category : "مميز",
+      low_stock: mode === "category" ? formData.low_stock : false,
+      is_featured: mode === "featured",
+      image_url: imageUrl,
+    };
+
+    await supabase.from("products").insert(payload);
 
     setShowForm(false);
     setFormData({
@@ -65,6 +96,7 @@ export default function AdminProductsPage() {
       category: "",
       low_stock: false,
       is_featured: false,
+      imageFile: null,
     });
 
     fetchProducts();
@@ -72,82 +104,97 @@ export default function AdminProductsPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">لوحة تحكم الأدمن</h1>
+      <h1 className="text-2xl font-bold mb-2">لوحة تحكم الأدمن</h1>
 
-      <button
-        onClick={() => setShowForm(!showForm)}
-        className="bg-blue-600 text-white px-4 py-2 rounded mb-4"
-      >
-        {showForm ? "إلغاء" : "إضافة منتج"}
-      </button>
+      {/* 🔀 التبديل */}
+      <div className="mb-4 text-sm space-x-3 rtl:space-x-reverse">
+        <button
+          onClick={() => {
+            setMode("category");
+            setShowForm(true);
+          }}
+          className="underline"
+        >
+          إضافة منتج فئة
+        </button>
+
+        <button
+          onClick={() => {
+            setMode("featured");
+            setShowForm(true);
+          }}
+          className="underline"
+        >
+          إضافة منتج مميز
+        </button>
+      </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="border p-4 rounded space-y-3">
+        <form
+          onSubmit={handleSubmit}
+          className="border p-4 rounded mb-6 space-y-3"
+        >
           <input
             name="name"
             placeholder="اسم المنتج"
-            className="border p-2 w-full"
+            value={formData.name}
             onChange={handleChange}
+            className="border p-2 w-full"
           />
 
           <input
             name="price"
             type="number"
-            className="border p-2 w-full"
+            value={formData.price}
             onChange={handleChange}
+            className="border p-2 w-full"
           />
 
-          <select
-            name="category"
-            className="border p-2 w-full"
-            onChange={handleChange}
-          >
-            <option value="">اختر الفئة</option>
-            {categories.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+          {mode === "category" && (
+            <>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="border p-2 w-full"
+              >
+                <option value="">اختر الفئة</option>
+                {categories.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
 
-          {/* 🆕 منتج جديد */}
-          <label className="flex items-center gap-2">
-            <input type="checkbox" name="low_stock" onChange={handleChange} />
-            🆕 منتج جديد
-          </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="low_stock"
+                  checked={formData.low_stock}
+                  onChange={handleChange}
+                />
+                منتج جديد
+              </label>
+            </>
+          )}
 
-          {/* ⭐ منتج مميز */}
-          <label className="flex items-center gap-2">
-            <input type="checkbox" name="is_featured" onChange={handleChange} />
-            ⭐ منتج مميز
-          </label>
+          <input type="file" onChange={handleChange} />
 
-          <button className="bg-green-600 text-white px-4 py-2 rounded">
-            حفظ
+          <button className="bg-purple-600 text-white px-4 py-2 rounded">
+            إضافة المنتج
           </button>
         </form>
       )}
 
-      <div className="grid md:grid-cols-3 gap-4 mt-6">
+      {/* 🧾 المنتجات */}
+      <div className="grid md:grid-cols-3 gap-4">
         {products.map((p) => (
           <div key={p.id} className="border p-4 rounded relative">
             {p.is_featured && (
-              <span className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+              <span className="absolute top-2 left-2 text-xs">
                 ⭐ مميز
               </span>
             )}
 
-            {p.low_stock && (
-              <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                🆕 جديد
-              </span>
-            )}
-
-            <Image
-              src={p.image_url || "/placeholder.png"}
-              alt={p.name}
-              width={200}
-              height={200}
-            />
-
+            <Image src={p.image_url} alt={p.name} width={200} height={200} />
             <h2 className="font-bold mt-2">{p.name}</h2>
           </div>
         ))}
