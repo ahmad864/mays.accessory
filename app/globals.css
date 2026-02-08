@@ -4,127 +4,73 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated color scheme to use white background with elegant purple accent */
-  --background: oklch(1 0 0); /* Pure white background */
-  --foreground: oklch(0.15 0 0); /* Dark text for contrast */
-  --card: oklch(0.98 0 0); /* Very light gray for cards */
-  --card-foreground: oklch(0.15 0 0); /* Dark text for contrast */
-  --popover: oklch(1 0 0); /* White popover */
-  --popover-foreground: oklch(0.15 0 0); /* Dark text for contrast */
-  --primary: #7f5c7e; /* Elegant purple as primary color */
-  --primary-foreground: oklch(1 0 0); /* White text on primary */
-  --secondary: oklch(0.95 0 0); /* Light gray secondary */
-  --secondary-foreground: oklch(0.15 0 0); /* Dark text on secondary */
-  --muted: oklch(0.96 0 0); /* Very light muted background */
-  --muted-foreground: oklch(0.45 0 0); /* Medium gray text */
-  --accent: #7f5c7e; /* Same elegant purple for accent */
-  --accent-foreground: oklch(1 0 0); /* White text on accent */
-  --destructive: oklch(0.6 0.2 30); /* Orange for warnings */
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0 0); /* Light gray border */
-  --input: oklch(1 0 0); /* White input background */
-  --ring: rgba(127, 92, 126, 0.3); /* Purple ring with transparency */
-  --chart-1: #7f5c7e;
-  --chart-2: rgba(127, 92, 126, 0.8);
-  --chart-3: rgba(127, 92, 126, 0.6);
-  --chart-4: rgba(127, 92, 126, 0.4);
-  --chart-5: rgba(127, 92, 126, 0.2);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0 0);
+
+  --card: oklch(0.98 0 0);
+  --card-foreground: oklch(0.15 0 0);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+
+  /* ✅ اللون البنفسجي الجديد */
+  --primary: #B887C6;
+  --primary-foreground: #ffffff;
+
+  --secondary: oklch(0.95 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+
+  --accent: #B887C6;
+  --accent-foreground: #ffffff;
+
+  --border: oklch(0.9 0 0);
+  --input: oklch(1 0 0);
+  --ring: #B887C6;
+
   --radius: 0.5rem;
-  --sidebar: oklch(0.98 0 0); /* Very light sidebar */
-  --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-primary: #7f5c7e;
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0 0);
-  --sidebar-accent-foreground: oklch(0.15 0 0);
-  --sidebar-border: oklch(0.9 0 0);
-  --sidebar-ring: rgba(127, 92, 126, 0.3);
 }
 
 .dark {
   --background: oklch(0.1 0 0);
   --foreground: oklch(0.95 0 0);
+
   --card: oklch(0.15 0 0);
   --card-foreground: oklch(0.95 0 0);
+
   --popover: oklch(0.1 0 0);
   --popover-foreground: oklch(0.95 0 0);
-  --primary: #7f5c7e;
-  --primary-foreground: oklch(0.1 0 0);
-  --secondary: rgba(127, 92, 126, 0.2);
+
+  /* ✅ نفس اللون بالداكن */
+  --primary: #B887C6;
+  --primary-foreground: #1f1f1f;
+
+  --secondary: oklch(0.2 0 0);
   --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.2 0 0);
-  --muted-foreground: oklch(0.7 0 0);
-  --accent: #7f5c7e;
-  --accent-foreground: oklch(0.1 0 0);
-  --destructive: oklch(0.5 0.2 30);
-  --destructive-foreground: oklch(0.95 0 0);
+
+  --accent: #B887C6;
+  --accent-foreground: #1f1f1f;
+
   --border: oklch(0.2 0 0);
   --input: oklch(0.2 0 0);
-  --ring: rgba(127, 92, 126, 0.5);
-  --chart-1: #7f5c7e;
-  --chart-2: rgba(127, 92, 126, 0.8);
-  --chart-3: rgba(127, 92, 126, 0.6);
-  --chart-4: rgba(127, 92, 126, 0.4);
-  --chart-5: rgba(127, 92, 126, 0.2);
-  --sidebar: rgba(127, 92, 126, 0.1);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: #7f5c7e;
-  --sidebar-primary-foreground: oklch(0.95 0 0);
-  --sidebar-accent: rgba(127, 92, 126, 0.2);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.2 0 0);
-  --sidebar-ring: rgba(127, 92, 126, 0.5);
+  --ring: #B887C6;
 }
 
 @theme inline {
-  /* Added Cinzel Decorative font variable for TOLAY logo */
-  --font-sans: var(--font-tajawal);
-  --font-serif: var(--font-amiri);
-  --font-mono: var(--font-geist-mono);
-  --font-cinzel-decorative: var(--font-cinzel-decorative);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
-    /* Updated body to use clean white background */
     @apply bg-background text-foreground;
   }
 }
