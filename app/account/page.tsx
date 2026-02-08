@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -12,7 +11,10 @@ import { useSearchParams } from "next/navigation"
 
 export default function AccountPage() {
   const searchParams = useSearchParams()
-  const defaultTab = searchParams.get("tab") === "favorites" ? "favorites" : "orders"
+
+  // ✅ المفضلة هي الافتراضي دائماً
+  const defaultTab =
+    searchParams.get("tab") === "favorites" ? "favorites" : "favorites"
 
   const { favorites, getFavoritesCount } = useFavorites()
   const {
