@@ -11,7 +11,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
 
-  /* 🔴 اللون الأساسي للموقع */
+  /* اللون الأساسي */
   --primary: #B887C6;
   --primary-foreground: #ffffff;
 
@@ -19,11 +19,13 @@
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
+
   --accent: #B887C6;
   --accent-foreground: #ffffff;
 
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #ffffff;
+
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: #B887C6;
@@ -48,7 +50,6 @@
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
 
-  /* 🔴 نفس اللون في الوضع الداكن */
   --primary: #B887C6;
   --primary-foreground: #1f1f1f;
 
@@ -56,11 +57,13 @@
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
+
   --accent: #B887C6;
   --accent-foreground: #1f1f1f;
 
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: #ffffff;
+
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
   --ring: #B887C6;
@@ -76,42 +79,16 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-input: var(--input);
   --color-ring: var(--ring);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
@@ -121,4 +98,27 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ========================= */
+/* 🔥 OVERRIDE إجباري للألوان */
+/* ========================= */
+
+button,
+.bg-primary,
+[class*="bg-purple"],
+[class*="bg-[#7F5C7D]"] {
+  background-color: #B887C6 !important;
+}
+
+.text-primary,
+[class*="text-purple"],
+[class*="text-[#7F5C7D]"] {
+  color: #B887C6 !important;
+}
+
+.border-primary,
+[class*="border-purple"],
+[class*="border-[#7F5C7D]"] {
+  border-color: #B887C6 !important;
 }
