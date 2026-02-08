@@ -3,122 +3,74 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* =========================
+   FORCE MAIN COLOR
+   ========================= */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --main-color: #B887C6;
+  --main-color-text: #ffffff;
 
-  /* اللون الأساسي */
-  --primary: #B887C6;
-  --primary-foreground: #ffffff;
-
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-
-  --accent: #B887C6;
-  --accent-foreground: #ffffff;
-
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: #ffffff;
-
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: #B887C6;
-
+  --background: #ffffff;
+  --foreground: #111111;
+  --border: #e5e5e5;
   --radius: 0.625rem;
-
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #B887C6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #B887C6;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: #B887C6;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-
-  --primary: #B887C6;
-  --primary-foreground: #1f1f1f;
-
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-
-  --accent: #B887C6;
-  --accent-foreground: #1f1f1f;
-
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: #ffffff;
-
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: #B887C6;
-
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #B887C6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #B887C6;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: #B887C6;
+  --background: #111111;
+  --foreground: #ffffff;
+  --border: #333333;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-border: var(--border);
-  --color-ring: var(--ring);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-/* ========================= */
-/* 🔥 OVERRIDE إجباري للألوان */
-/* ========================= */
-
-button,
+/* =========================
+   FORCE TAILWIND COLORS
+   ========================= */
 .bg-primary,
-[class*="bg-purple"],
-[class*="bg-[#7F5C7D]"] {
-  background-color: #B887C6 !important;
+.bg-purple-500,
+.bg-purple-600,
+.bg-purple-700,
+.bg-[#7F5C7D],
+button,
+.btn,
+.add-to-cart {
+  background-color: var(--main-color) !important;
+  color: var(--main-color-text) !important;
 }
 
 .text-primary,
-[class*="text-purple"],
-[class*="text-[#7F5C7D]"] {
-  color: #B887C6 !important;
+.text-purple-500,
+.text-purple-600,
+.text-purple-700,
+.text-[#7F5C7D] {
+  color: var(--main-color) !important;
 }
 
 .border-primary,
-[class*="border-purple"],
-[class*="border-[#7F5C7D]"] {
-  border-color: #B887C6 !important;
+.border-purple-500,
+.border-purple-600,
+.border-purple-700,
+.border-[#7F5C7D] {
+  border-color: var(--main-color) !important;
+}
+
+/* =========================
+   INPUTS + FOCUS
+   ========================= */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--main-color) !important;
+  outline-color: var(--main-color) !important;
+}
+
+/* =========================
+   BASE
+   ========================= */
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
 }
