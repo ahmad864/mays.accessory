@@ -34,62 +34,58 @@ type ProductsAction =
   | { type: "UPDATE_STOCK"; payload: { id: number; stock: number } }
   | { type: "SET_LOADING"; payload: boolean }
 
-/* 🔴 البداية نظيفة 100٪ — لا منتجات تجريبية */
+/* ✅ فئات الموقع الحقيقية */
+const BASE_CATEGORIES = [
+  "خواتم",
+  "أحلاق",
+  "أساور",
+  "سلاسل",
+  "ساعات",
+  "نظارات",
+]
+
+/* ✅ لا منتجات تجريبية */
 const initialState: ProductsState = {
   products: [],
-  categories: [],
+  categories: BASE_CATEGORIES,
   loading: false,
 }
 
 function productsReducer(state: ProductsState, action: ProductsAction): ProductsState {
   switch (action.type) {
-    case "SET_PRODUCTS": {
-      const categories = [...new Set(action.payload.map((p) => p.category))]
+    case "SET_PRODUCTS":
       return {
         ...state,
         products: action.payload,
-        categories,
       }
-    }
 
-    case "ADD_PRODUCT": {
-      const categories = [...new Set([...state.categories, action.payload.category])]
+    case "ADD_PRODUCT":
       return {
         ...state,
         products: [...state.products, action.payload],
-        categories,
       }
-    }
 
-    case "UPDATE_PRODUCT": {
-      const updatedProducts = state.products.map((p) =>
-        p.id === action.payload.id ? action.payload : p,
-      )
-      const categories = [...new Set(updatedProducts.map((p) => p.category))]
-
+    case "UPDATE_PRODUCT":
       return {
         ...state,
-        products: updatedProducts,
-        categories,
+        products: state.products.map((p) =>
+          p.id === action.payload.id ? action.payload : p,
+        ),
       }
-    }
 
-    case "DELETE_PRODUCT": {
-      const updatedProducts = state.products.filter((p) => p.id !== action.payload)
-      const categories = [...new Set(updatedProducts.map((p) => p.category))]
-
+    case "DELETE_PRODUCT":
       return {
         ...state,
-        products: updatedProducts,
-        categories,
+        products: state.products.filter((p) => p.id !== action.payload),
       }
-    }
 
     case "UPDATE_STOCK":
       return {
         ...state,
         products: state.products.map((p) =>
-          p.id === action.payload.id ? { ...p, stock: action.payload.stock } : p,
+          p.id === action.payload.id
+            ? { ...p, stock: action.payload.stock }
+            : p,
         ),
       }
 
