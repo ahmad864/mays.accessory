@@ -4,9 +4,9 @@ export interface Product {
   id: number
   name: string
   price: number
-  image_url: string
+  image: string
   stock: number
-  is_new: boolean
+  isNew: boolean
   category: string
 }
 
@@ -18,7 +18,7 @@ export async function getProductsByCategory(
 ): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
-    .select("*")
+    .select("id, name, price, image_url, stock, is_new, category")
     .eq("category", category)
 
   if (error) {
@@ -26,11 +26,21 @@ export async function getProductsByCategory(
     return []
   }
 
-  return data || []
+  return (
+    data?.map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      image: p.image_url,
+      stock: p.stock,
+      isNew: p.is_new,
+      category: p.category,
+    })) || []
+  )
 }
 
 /* ===============================
-   عدد المنتجات في فئة (الحل النهائي)
+   عدد المنتجات في فئة
 ================================ */
 export async function getProductCountByCategory(
   category: string
