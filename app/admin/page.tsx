@@ -32,8 +32,8 @@ export default function AdminPage() {
   const { user, loading } = useAuth()
 
   const [mode, setMode] = useState<"category" | "featured">("category")
-
   const [products, setProducts] = useState<Product[]>([])
+
   const [name, setName] = useState("")
   const [price, setPrice] = useState("")
   const [category, setCategory] = useState(categories[0])
@@ -96,7 +96,7 @@ export default function AdminPage() {
         ? {
             name,
             price: Number(price),
-            category: categoryMap[category] ?? category,
+            category: categoryMap[category],
             stock,
             is_new: isNew,
             image_url: imageUrl,
@@ -112,10 +112,39 @@ export default function AdminPage() {
             is_featured: true,
           }
 
-    await supabase.from("products").insert([payload])
+    if (editId) {
+      await supabase.from("products").update(payload).eq("id", editId)
+    } else {
+      await supabase.from("products").insert([payload])
+    }
 
     resetForm()
     fetchProducts()
+  }
+
+  const deleteProduct = async (id: string) => {
+    await supabase.from("products").delete().eq("id", id)
+    fetchProducts()
+  }
+
+  const editProduct = (p: Product) => {
+    setEditId(p.id)
+    setName(p.name)
+    setPrice(p.price.toString())
+    setImage(null)
+
+    if (p.is_featured) {
+      setMode("featured")
+    } else {
+      setMode("category")
+      setCategory(
+        Object.keys(categoryMap).find(
+          (k) => categoryMap[k] === p.category
+        ) || categories[0]
+      )
+      setStock(p.stock)
+      setIsNew(p.is_new)
+    }
   }
 
   const resetForm = () => {
@@ -132,12 +161,12 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-2 text-[#7f5c7e]">
+      <h1 className="text-3xl font-bold mb-4 text-[#7f5c7e]">
         لوحة تحكم الأدمن
       </h1>
 
       {/* التبديل */}
-      <div className="flex gap-6 mb-6 text-sm">
+      <div className="flex gap-6 mb-6">
         <button
           onClick={() => {
             setMode("category")
@@ -160,9 +189,9 @@ export default function AdminPage() {
       </div>
 
       {/* النموذج */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+      <div className="bg-white p-6 rounded-lg shadow mb-10">
         <h2 className="text-xl font-semibold mb-4">
-          {mode === "category" ? "إضافة منتج فئة" : "إضافة منتج مميز"}
+          {editId ? "تعديل المنتج" : "إضافة منتج"}
         </h2>
 
         <input
@@ -194,12 +223,11 @@ export default function AdminPage() {
             <input
               type="number"
               className="border p-2 mb-3 w-full"
-              placeholder="الكمية"
               value={stock}
               onChange={(e) => setStock(Number(e.target.value))}
             />
 
-            <label className="flex items-center gap-2 mb-3">
+            <label className="flex gap-2 mb-3">
               <input
                 type="checkbox"
                 checked={isNew}
@@ -216,8 +244,41 @@ export default function AdminPage() {
           onClick={saveProduct}
           className="bg-[#7f5c7e] text-white px-4 py-2 rounded"
         >
-          إضافة المنتج
+          {editId ? "حفظ التعديل" : "إضافة المنتج"}
         </button>
+      </div>
+
+      {/* عرض المنتجات */}
+      <div className="grid md:grid-cols-3 gap-6">
+        {products.map((p) => (
+          <div key={p.id} className="bg-white p-4 rounded shadow relative">
+            {p.is_featured && (
+              <span className="absolute top-2 left-2 text-xs bg-yellow-400 px-2 py-1 rounded">
+                ⭐ مميز
+              </span>
+            )}
+
+            <img src={p.image_url} className="w-full h-40 object-cover mb-2" />
+            <h3 className="font-semibold">{p.name}</h3>
+            <p>السعر: {p.price}</p>
+            {!p.is_featured && <p>الفئة: {p.category}</p>}
+
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => editProduct(p)}
+                className="bg-yellow-500 text-white px-3 py-1 rounded"
+              >
+                تعديل
+              </button>
+              <button
+                onClick={() => deleteProduct(p.id)}
+                className="bg-red-500 text-white px-3 py-1 rounded"
+              >
+                حذف
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
