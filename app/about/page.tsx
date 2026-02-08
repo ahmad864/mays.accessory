@@ -10,7 +10,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl lg:text-6xl font-bold mb-6 font-tajawal text-[#7f5c7e]">من نحن</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto font-tajawal leading-relaxed">
-            متجر TOLAY هو وجهتك المثالية للإكسسوارات الأنيقة والعصرية. نحن نؤمن بأن كل امرأة تستحق أن تشعر بالجمال
+            متجر MISS هو وجهتك المثالية للإكسسوارات الأنيقة والعصرية. نحن نؤمن بأن كل امرأة تستحق أن تشعر بالجمال
             والثقة
           </p>
         </div>
@@ -27,7 +27,7 @@ export default function AboutPage() {
                 بشغف لاختيار أجمل القطع التي تعكس شخصيتك الفريدة.
               </p>
               <p className="text-lg text-gray-600 font-tajawal leading-relaxed">
-                نحن نفخر بتقديم مجموعة متنوعة من الخواتم، الأقراط، الأساور، السلاسل، الساعات والنظارات التي تناسب جميع
+                نحن نفخر بتقديم مجموعة متنوعة من الخواتم، الأحلاق الأساور، السلاسل، الساعات والنظارات التي تناسب جميع
                 الأذواق والمناسبات.
               </p>
             </div>
