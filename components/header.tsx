@@ -30,7 +30,7 @@ export function Header() {
                 fontFamily: "var(--font-cinzel-decorative)",
               }}
             >
-              MAYS
+              MISS
             </span>
           </Link>
 
