@@ -59,7 +59,7 @@ export default function AccountPage() {
                     <p className="text-muted-foreground font-tajawal">
                       لا توجد طلبات حالياً
                     </p>
-                    <Link href="/products">
+                    <Link href="/">
                       <Button className="mt-4 bg-[#7f5c7e] text-white font-tajawal">
                         تسوق الآن
                       </Button>
