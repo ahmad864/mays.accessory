@@ -4,6 +4,24 @@ import type React from "react"
 import { createContext, useContext, useEffect, useReducer } from "react"
 import { supabase } from "@/lib/supabase"
 
+/* ✅ تحويل الفئات من إنجليزي → عربي */
+const CATEGORY_MAP: Record<string, string> = {
+  rings: "خواتم",
+  earrings: "أحلاق",
+  bracelets: "اساور",
+  chains: "سلاسل",
+  watches: "ساعات",
+  glasses: "نظارات",
+
+  // لو كانت أصلًا عربية
+  خواتم: "خواتم",
+  أحلاق: "أحلاق",
+  اساور: "اساور",
+  سلاسل: "سلاسل",
+  ساعات: "ساعات",
+  نظارات: "نظارات",
+}
+
 export interface Product {
   id: number
   name: string
@@ -35,7 +53,10 @@ const initialState: ProductsState = {
   loading: true,
 }
 
-function productsReducer(state: ProductsState, action: ProductsAction): ProductsState {
+function productsReducer(
+  state: ProductsState,
+  action: ProductsAction
+): ProductsState {
   switch (action.type) {
     case "SET_PRODUCTS": {
       const categories = Array.from(
@@ -80,7 +101,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           name: p.name,
           price: p.price,
           images: [p.image_url],
-          category: p.category,
+          category: CATEGORY_MAP[p.category] ?? p.category, // ⭐ هنا الحل
           rating: 5,
           reviews: 0,
           isNew: p.low_stock ?? false,
