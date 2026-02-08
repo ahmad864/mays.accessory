@@ -5,11 +5,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Heart, ShoppingBag, Star, Search, Filter, AlertTriangle } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { ShoppingBag, Star, Search, Filter } from "lucide-react"
 import { useCart } from "@/lib/cart-store"
 import { useProducts } from "@/lib/products-store"
-import { useFavorites } from "@/lib/favorites-store"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
@@ -19,13 +24,11 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState("name")
 
   const { dispatch: cartDispatch } = useCart()
-  const { toggleFavorite, isFavorite } = useFavorites()
-
   const {
     state: { products },
   } = useProducts()
 
-  /* ✅ الفئات تُستخرج من المنتجات الفعلية فقط */
+  /* ✅ الفئات تُستخرج فقط من المنتجات الحقيقية */
   const categories = Array.from(
     new Set(products.map((product) => product.category))
   )
@@ -39,11 +42,14 @@ export default function ProductsPage() {
     }
   }, [searchParams])
 
+  /* ✅ ربط البحث + الفئات */
   const filteredProducts = products
     .filter((product) => {
+      const search = searchTerm.toLowerCase().trim()
+
       const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+        product.name.toLowerCase().includes(search) ||
+        product.category.toLowerCase().includes(search)
 
       const matchesCategory =
         selectedCategory === "all" || product.category === selectedCategory
@@ -84,20 +90,20 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl lg:text-4xl font-bold mb-4 text-[#7f5c7e]">
+          <h1 className="text-3xl font-bold mb-3 text-[#7f5c7e]">
             جميع المنتجات
           </h1>
-          <p className="text-lg text-muted-foreground">
-            اكتشفي مجموعتنا الكاملة من الإكسسوارات
+          <p className="text-muted-foreground">
+            تصفحي جميع منتجات متجر MISS
           </p>
         </div>
 
-        {/* Filters */}
+        {/* الفلاتر */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="ابحث عن منتج أو فئة..."
+              placeholder="ابحثي باسم المنتج أو الفئة..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -107,7 +113,7 @@ export default function ProductsPage() {
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-full md:w-48">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="اختر الفئة" />
+              <SelectValue placeholder="الفئة" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">جميع الفئات</SelectItem>
@@ -121,21 +127,21 @@ export default function ProductsPage() {
 
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="ترتيب حسب" />
+              <SelectValue placeholder="الترتيب" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="name">الاسم</SelectItem>
-              <SelectItem value="price-low">السعر: الأقل أولاً</SelectItem>
-              <SelectItem value="price-high">السعر: الأعلى أولاً</SelectItem>
+              <SelectItem value="price-low">السعر: الأقل</SelectItem>
+              <SelectItem value="price-high">السعر: الأعلى</SelectItem>
               <SelectItem value="rating">التقييم</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Products */}
-        <div className="grid grid-cols-2 gap-4 md:gap-6">
+        {/* المنتجات */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {filteredProducts.map((product) => (
-            <Card key={product.id} className="overflow-hidden">
+            <Card key={product.id}>
               <CardContent className="p-0">
                 <Link href={`/product/${product.id}`}>
                   <img
@@ -150,21 +156,15 @@ export default function ProductsPage() {
                     {product.category}
                   </Badge>
 
-                  <h3 className="font-semibold mb-2">{product.name}</h3>
+                  <h3 className="font-semibold mb-1">{product.name}</h3>
 
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-1 mb-2 text-sm">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span>{product.rating}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm text-muted-foreground">
-                      المتوفر: {product.stock}
-                    </span>
+                    {product.rating}
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-[#7f5c7e]">
+                    <span className="font-bold text-[#7f5c7e]">
                       {product.price} ر.س
                     </span>
 
@@ -185,7 +185,7 @@ export default function ProductsPage() {
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            لا توجد منتجات مطابقة
+            لا توجد منتجات مطابقة لبحثك
           </div>
         )}
       </div>
