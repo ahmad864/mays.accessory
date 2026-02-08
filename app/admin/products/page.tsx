@@ -10,8 +10,8 @@ interface Product {
   price: number;
   image_url: string;
   category: string;
-  low_stock: boolean;
-  is_featured: boolean;
+  low_stock: boolean;   // منتج جديد
+  is_featured: boolean; // منتج مميز
 }
 
 export default function AdminProductsPage() {
@@ -33,11 +33,7 @@ export default function AdminProductsPage() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("products")
-      .select("*")
-      .order("name");
-
+    const { data } = await supabase.from("products").select("*").order("name");
     setProducts((data as Product[]) ?? []);
     setLoading(false);
   };
@@ -46,21 +42,15 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const target = e.target as HTMLInputElement;
-    const { name, type, checked, value, files } = target;
+  const handleChange = (e: any) => {
+    const { name, value, type, checked, files } = e.target;
 
     if (type === "checkbox") {
-      setFormData((prev) => ({ ...prev, [name]: checked }));
+      setFormData((p) => ({ ...p, [name]: checked }));
     } else if (type === "file") {
-      setFormData((prev) => ({
-        ...prev,
-        imageFile: files && files[0] ? files[0] : null,
-      }));
-    } else if (type === "number") {
-      setFormData((prev) => ({ ...prev, [name]: Number(value) }));
+      setFormData((p) => ({ ...p, imageFile: files?.[0] ?? null }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((p) => ({ ...p, [name]: value }));
     }
   };
 
@@ -68,9 +58,9 @@ export default function AdminProductsPage() {
     const ext = file.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${ext}`;
 
-    await supabase.storage
-      .from("product-images")
-      .upload(fileName, file, { upsert: true });
+    await supabase.storage.from("product-images").upload(fileName, file, {
+      upsert: true,
+    });
 
     const { data } = supabase.storage
       .from("product-images")
@@ -93,19 +83,18 @@ export default function AdminProductsPage() {
       price: formData.price,
       category: formData.category,
       low_stock: formData.low_stock,
-      is_featured: formData.is_featured, // ⭐ مهم
+      is_featured: formData.is_featured,
       image_url: imageUrl,
     };
 
     if (editingProduct) {
-      await supabase
-        .from("products")
-        .update(payload)
-        .eq("id", editingProduct.id);
+      await supabase.from("products").update(payload).eq("id", editingProduct.id);
     } else {
       await supabase.from("products").insert(payload);
     }
 
+    setShowForm(false);
+    setEditingProduct(null);
     setFormData({
       name: "",
       price: 1,
@@ -115,8 +104,6 @@ export default function AdminProductsPage() {
       imageFile: null,
     });
 
-    setEditingProduct(null);
-    setShowForm(false);
     fetchProducts();
   };
 
@@ -145,14 +132,13 @@ export default function AdminProductsPage() {
       </button>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="border p-4 rounded mb-6">
+        <form onSubmit={handleSubmit} className="border p-4 rounded mb-6 space-y-2">
           <input
             name="name"
-            value={formData.name}
             placeholder="اسم المنتج"
+            value={formData.name}
             onChange={handleChange}
-            className="border p-2 w-full mb-2"
-            required
+            className="border p-2 w-full"
           />
 
           <input
@@ -160,24 +146,36 @@ export default function AdminProductsPage() {
             type="number"
             value={formData.price}
             onChange={handleChange}
-            className="border p-2 w-full mb-2"
-            required
+            className="border p-2 w-full"
           />
 
           <select
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="border p-2 w-full mb-2"
-            required
+            className="border p-2 w-full"
           >
             <option value="">اختر الفئة</option>
             {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
 
-          <label className="flex gap-2 mb-2">
+          {/* منتج جديد */}
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              name="low_stock"
+              checked={formData.low_stock}
+              onChange={handleChange}
+            />
+            منتج جديد 🆕
+          </label>
+
+          {/* منتج مميز */}
+          <label className="flex items-center gap-2">
             <input
               type="checkbox"
               name="is_featured"
@@ -189,45 +187,39 @@ export default function AdminProductsPage() {
 
           <input type="file" onChange={handleChange} />
 
-          <button className="bg-green-600 text-white px-4 py-2 rounded mt-2">
+          <button className="bg-green-600 text-white px-4 py-2 rounded">
             حفظ
           </button>
         </form>
       )}
 
-      {loading ? (
-        <p>جارٍ التحميل...</p>
-      ) : (
-        <div className="grid md:grid-cols-3 gap-4">
-          {products.map((p) => (
-            <div key={p.id} className="border p-4 rounded relative">
-              {p.is_featured && (
-                <span className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
-                  ⭐ مميز
-                </span>
-              )}
+      <div className="grid md:grid-cols-3 gap-4">
+        {products.map((p) => (
+          <div key={p.id} className="border p-4 rounded relative">
+            {p.is_featured && (
+              <span className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+                ⭐ مميز
+              </span>
+            )}
 
-              {p.image_url && (
-                <Image
-                  src={p.image_url}
-                  alt={p.name}
-                  width={200}
-                  height={200}
-                />
-              )}
+            {p.low_stock && (
+              <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                🆕 جديد
+              </span>
+            )}
 
-              <h2 className="font-bold mt-2">{p.name}</h2>
+            <Image src={p.image_url} alt={p.name} width={200} height={200} />
+            <h2 className="font-bold mt-2">{p.name}</h2>
 
-              <button
-                onClick={() => handleEdit(p)}
-                className="bg-yellow-500 text-white px-2 py-1 rounded mt-2"
-              >
-                تعديل
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+            <button
+              onClick={() => handleEdit(p)}
+              className="bg-yellow-500 text-white px-2 py-1 rounded mt-2"
+            >
+              تعديل
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
