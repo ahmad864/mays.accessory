@@ -14,7 +14,7 @@ const OFFICIAL_CATEGORIES = [
   "نظارات",
 ]
 
-/* ✅ توحيد أسماء الفئات */
+/* ✅ تحويل أي قيمة إلى اسم عربي موحد */
 const CATEGORY_MAP: Record<string, string> = {
   rings: "خواتم",
   ring: "خواتم",
@@ -27,7 +27,6 @@ const CATEGORY_MAP: Record<string, string> = {
 
   necklaces: "سلاسل",
   necklace: "سلاسل",
-  chains: "سلاسل",
 
   watches: "ساعات",
   watch: "ساعات",
@@ -47,29 +46,29 @@ export interface Product {
   id: number
   name: string
   price: number
-  originalPrice?: number
   images: string[]
   category: string
   rating: number
   reviews: number
   isNew: boolean
-  isSale: boolean // ⭐ المنتج المميز
+  isSale: boolean
   stock: number
-  description?: string
 }
 
 interface ProductsState {
-  products: Product[]
+  products: Product[]              // ✅ للفئات + البحث
+  featuredProducts: Product[]      // ⭐ للصفحة الرئيسية فقط
   categories: string[]
   loading: boolean
 }
 
 type ProductsAction =
-  | { type: "SET_PRODUCTS"; payload: Product[] }
+  | { type: "SET_DATA"; payload: { products: Product[]; featured: Product[] } }
   | { type: "SET_LOADING"; payload: boolean }
 
 const initialState: ProductsState = {
   products: [],
+  featuredProducts: [],
   categories: OFFICIAL_CATEGORIES,
   loading: true,
 }
@@ -79,11 +78,11 @@ function productsReducer(
   action: ProductsAction
 ): ProductsState {
   switch (action.type) {
-    case "SET_PRODUCTS":
+    case "SET_DATA":
       return {
         ...state,
-        products: action.payload,
-        categories: OFFICIAL_CATEGORIES,
+        products: action.payload.products,
+        featuredProducts: action.payload.featured,
         loading: false,
       }
 
@@ -112,23 +111,34 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         .order("name")
 
       if (!error && data) {
-        const mappedProducts: Product[] = data.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          images: [p.image_url],
-          category: CATEGORY_MAP[p.category] ?? "خواتم",
-          rating: 5,
-          reviews: 0,
-          isNew: p.low_stock ?? false,
+        const featured: Product[] = []
+        const normal: Product[] = []
 
-          // ⭐⭐⭐ هذا هو المهم
-          isSale: p.is_featured === true,
+        data.forEach((p: any) => {
+          const product: Product = {
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            images: [p.image_url],
+            category: CATEGORY_MAP[p.category] ?? "خواتم",
+            rating: 5,
+            reviews: 0,
+            isNew: false,
+            isSale: false,
+            stock: p.stock ?? 10,
+          }
 
-          stock: p.low_stock ? 3 : 10,
-        }))
+          if (p.category === "featured") {
+            featured.push(product) // ⭐ منتجاتنا المميزة
+          } else {
+            normal.push(product)   // ✅ منتجات الفئات (للبحث)
+          }
+        })
 
-        dispatch({ type: "SET_PRODUCTS", payload: mappedProducts })
+        dispatch({
+          type: "SET_DATA",
+          payload: { products: normal, featured },
+        })
       }
     }
 
