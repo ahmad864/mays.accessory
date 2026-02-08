@@ -15,6 +15,7 @@ interface Product {
 
 export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([])
+  const [limit, setLimit] = useState(10)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export function FeaturedProducts() {
         .select("id, name, price, image_url")
         .eq("is_featured", true)
         .order("created_at", { ascending: false })
+        .limit(limit)
 
       if (!error) {
         setProducts(data || [])
@@ -35,7 +37,7 @@ export function FeaturedProducts() {
     }
 
     fetchFeatured()
-  }, [])
+  }, [limit])
 
   // ⏳ تحميل
   if (loading) return null
@@ -71,6 +73,15 @@ export function FeaturedProducts() {
           </Card>
         ))}
       </div>
+
+      {/* زر عرض المزيد */}
+      {products.length >= limit && (
+        <div className="text-center mt-8">
+          <Button onClick={() => setLimit((prev) => prev + 10)}>
+            عرض منتجات أكثر
+          </Button>
+        </div>
+      )}
     </section>
   )
 }
