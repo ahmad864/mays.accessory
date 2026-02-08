@@ -18,6 +18,16 @@ import { useProducts } from "@/lib/products-store"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
+/* ✅ نفس فئات الصفحة الرئيسية */
+const OFFICIAL_CATEGORIES = [
+  "خواتم",
+  "أحلاق",
+  "اساور",
+  "سلاسل",
+  "ساعات",
+  "نظارات",
+]
+
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
@@ -28,11 +38,6 @@ export default function ProductsPage() {
     state: { products },
   } = useProducts()
 
-  /* ✅ الفئات تُستخرج فقط من المنتجات الحقيقية */
-  const categories = Array.from(
-    new Set(products.map((product) => product.category))
-  )
-
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -42,19 +47,26 @@ export default function ProductsPage() {
     }
   }, [searchParams])
 
-  /* ✅ ربط البحث + الفئات */
+  /* ✅ البحث الذكي المرتبط بالفئات */
   const filteredProducts = products
     .filter((product) => {
-      const search = searchTerm.toLowerCase().trim()
+      const search = searchTerm.trim()
 
-      const matchesSearch =
-        product.name.toLowerCase().includes(search) ||
-        product.category.toLowerCase().includes(search)
+      // 🔍 هل المستخدم كتب اسم فئة؟
+      const isCategorySearch = OFFICIAL_CATEGORIES.includes(search)
+
+      if (isCategorySearch) {
+        return product.category === search
+      }
+
+      const matchesText =
+        product.name.includes(search) ||
+        product.category.includes(search)
 
       const matchesCategory =
         selectedCategory === "all" || product.category === selectedCategory
 
-      return matchesSearch && matchesCategory
+      return matchesText && matchesCategory
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -103,7 +115,7 @@ export default function ProductsPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="ابحثي باسم المنتج أو الفئة..."
+              placeholder="ابحثي (مثال: اساور، خواتم...)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -117,7 +129,7 @@ export default function ProductsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">جميع الفئات</SelectItem>
-              {categories.map((category) => (
+              {OFFICIAL_CATEGORIES.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
                 </SelectItem>
