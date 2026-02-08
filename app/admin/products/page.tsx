@@ -17,7 +17,6 @@ interface Product {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // 🔁 وضع الصفحة
   const [mode, setMode] = useState<"category" | "featured">("category");
@@ -27,7 +26,6 @@ export default function AdminProductsPage() {
     price: 1,
     category: "",
     low_stock: false,
-    is_featured: false,
     imageFile: null as File | null,
   });
 
@@ -72,22 +70,18 @@ export default function AdminProductsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let imageUrl = "";
+    if (!formData.imageFile) return;
 
-    if (formData.imageFile) {
-      imageUrl = await uploadImage(formData.imageFile);
-    }
+    const imageUrl = await uploadImage(formData.imageFile);
 
-    const payload = {
+    await supabase.from("products").insert({
       name: formData.name,
       price: formData.price,
       category: mode === "category" ? formData.category : "مميز",
       low_stock: mode === "category" ? formData.low_stock : false,
       is_featured: mode === "featured",
       image_url: imageUrl,
-    };
-
-    await supabase.from("products").insert(payload);
+    });
 
     setShowForm(false);
     setFormData({
@@ -95,7 +89,6 @@ export default function AdminProductsPage() {
       price: 1,
       category: "",
       low_stock: false,
-      is_featured: false,
       imageFile: null,
     });
 
@@ -104,16 +97,19 @@ export default function AdminProductsPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-2">لوحة تحكم الأدمن</h1>
+      {/* العنوان */}
+      <h1 className="text-2xl font-bold mb-4">لوحة تحكم الأدمن</h1>
 
-      {/* 🔀 التبديل */}
-      <div className="mb-4 text-sm space-x-3 rtl:space-x-reverse">
+      {/* الأزرار */}
+      <div className="flex gap-4 mb-6">
         <button
           onClick={() => {
             setMode("category");
             setShowForm(true);
           }}
-          className="underline"
+          className={`px-4 py-2 rounded border ${
+            mode === "category" ? "bg-purple-600 text-white" : "bg-white"
+          }`}
         >
           إضافة منتج فئة
         </button>
@@ -123,17 +119,26 @@ export default function AdminProductsPage() {
             setMode("featured");
             setShowForm(true);
           }}
-          className="underline"
+          className={`px-4 py-2 rounded border ${
+            mode === "featured" ? "bg-purple-600 text-white" : "bg-white"
+          }`}
         >
           إضافة منتج مميز
         </button>
       </div>
 
+      {/* الفورم */}
       {showForm && (
         <form
           onSubmit={handleSubmit}
           className="border p-4 rounded mb-6 space-y-3"
         >
+          <h2 className="font-bold text-lg">
+            {mode === "category"
+              ? "إضافة منتج فئة"
+              : "إضافة منتج مميز"}
+          </h2>
+
           <input
             name="name"
             placeholder="اسم المنتج"
@@ -184,18 +189,13 @@ export default function AdminProductsPage() {
         </form>
       )}
 
-      {/* 🧾 المنتجات */}
+      {/* عرض المنتجات */}
       <div className="grid md:grid-cols-3 gap-4">
         {products.map((p) => (
-          <div key={p.id} className="border p-4 rounded relative">
-            {p.is_featured && (
-              <span className="absolute top-2 left-2 text-xs">
-                ⭐ مميز
-              </span>
-            )}
-
+          <div key={p.id} className="border p-4 rounded">
+            {p.is_featured && <span>⭐ مميز</span>}
             <Image src={p.image_url} alt={p.name} width={200} height={200} />
-            <h2 className="font-bold mt-2">{p.name}</h2>
+            <p className="font-bold mt-2">{p.name}</p>
           </div>
         ))}
       </div>
