@@ -157,6 +157,11 @@ export default function AdminPage() {
     setImage(null)
   }
 
+  // ✅ الفلترة الصحيحة حسب الوضع
+  const filteredProducts = products.filter((p) =>
+    mode === "featured" ? p.is_featured : !p.is_featured
+  )
+
   if (loading) return <p className="p-6">جاري التحقق من الصلاحية...</p>
 
   return (
@@ -250,7 +255,7 @@ export default function AdminPage() {
 
       {/* عرض المنتجات */}
       <div className="grid md:grid-cols-3 gap-6">
-        {products.map((p) => (
+        {filteredProducts.map((p) => (
           <div key={p.id} className="bg-white p-4 rounded shadow relative">
             {p.is_featured && (
               <span className="absolute top-2 left-2 text-xs bg-yellow-400 px-2 py-1 rounded">
