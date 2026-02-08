@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useReducer, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useReducer } from "react"
+import { supabase } from "@/lib/supabase"
 
 export interface Product {
   id: number
@@ -15,9 +16,7 @@ export interface Product {
   isNew: boolean
   isSale: boolean
   stock: number
-  description: string
-  colors?: string[]
-  sizes?: string[]
+  description?: string
 }
 
 interface ProductsState {
@@ -28,66 +27,28 @@ interface ProductsState {
 
 type ProductsAction =
   | { type: "SET_PRODUCTS"; payload: Product[] }
-  | { type: "ADD_PRODUCT"; payload: Product }
-  | { type: "UPDATE_PRODUCT"; payload: Product }
-  | { type: "DELETE_PRODUCT"; payload: number }
-  | { type: "UPDATE_STOCK"; payload: { id: number; stock: number } }
   | { type: "SET_LOADING"; payload: boolean }
 
-/* ✅ فئات الموقع الحقيقية */
-const BASE_CATEGORIES = [
-  "خواتم",
-  "أحلاق",
-  "أساور",
-  "سلاسل",
-  "ساعات",
-  "نظارات",
-]
-
-/* ✅ لا منتجات تجريبية */
 const initialState: ProductsState = {
   products: [],
-  categories: BASE_CATEGORIES,
-  loading: false,
+  categories: [],
+  loading: true,
 }
 
 function productsReducer(state: ProductsState, action: ProductsAction): ProductsState {
   switch (action.type) {
-    case "SET_PRODUCTS":
+    case "SET_PRODUCTS": {
+      const categories = Array.from(
+        new Set(action.payload.map((p) => p.category))
+      )
+
       return {
         ...state,
         products: action.payload,
+        categories,
+        loading: false,
       }
-
-    case "ADD_PRODUCT":
-      return {
-        ...state,
-        products: [...state.products, action.payload],
-      }
-
-    case "UPDATE_PRODUCT":
-      return {
-        ...state,
-        products: state.products.map((p) =>
-          p.id === action.payload.id ? action.payload : p,
-        ),
-      }
-
-    case "DELETE_PRODUCT":
-      return {
-        ...state,
-        products: state.products.filter((p) => p.id !== action.payload),
-      }
-
-    case "UPDATE_STOCK":
-      return {
-        ...state,
-        products: state.products.map((p) =>
-          p.id === action.payload.id
-            ? { ...p, stock: action.payload.stock }
-            : p,
-        ),
-      }
+    }
 
     case "SET_LOADING":
       return { ...state, loading: action.payload }
@@ -99,14 +60,43 @@ function productsReducer(state: ProductsState, action: ProductsAction): Products
 
 const ProductsContext = createContext<{
   state: ProductsState
-  dispatch: React.Dispatch<ProductsAction>
 } | null>(null)
 
-export function ProductsProvider({ children }: { children: ReactNode }) {
+export function ProductsProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(productsReducer, initialState)
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      dispatch({ type: "SET_LOADING", payload: true })
+
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("name")
+
+      if (!error && data) {
+        const mappedProducts: Product[] = data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          images: [p.image_url],
+          category: p.category,
+          rating: 5,
+          reviews: 0,
+          isNew: p.low_stock ?? false,
+          isSale: false,
+          stock: p.low_stock ? 3 : 10,
+        }))
+
+        dispatch({ type: "SET_PRODUCTS", payload: mappedProducts })
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
   return (
-    <ProductsContext.Provider value={{ state, dispatch }}>
+    <ProductsContext.Provider value={{ state }}>
       {children}
     </ProductsContext.Provider>
   )
@@ -115,7 +105,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 export function useProducts() {
   const context = useContext(ProductsContext)
   if (!context) {
-    throw new Error("useProducts must be used within a ProductsProvider")
+    throw new Error("useProducts must be used within ProductsProvider")
   }
   return context
 }
