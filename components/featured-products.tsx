@@ -39,10 +39,7 @@ export function FeaturedProducts() {
     fetchFeatured()
   }, [limit])
 
-  // ⏳ تحميل
   if (loading) return null
-
-  // ❌ لا نعرض القسم إذا لا توجد منتجات مميزة
   if (products.length === 0) return null
 
   return (
@@ -62,11 +59,13 @@ export function FeaturedProducts() {
               />
 
               <h3 className="mt-2 font-semibold">{p.name}</h3>
-              <p className="font-bold">{p.price}</p>
+
+              {/* السعر مع علامة الدولار */}
+              <p className="font-bold">${p.price}</p>
 
               <Link href={`/product/${p.id}`}>
                 <Button className="w-full mt-2">
-                  عرض المنتج
+                  عرض
                 </Button>
               </Link>
             </CardContent>
@@ -74,7 +73,6 @@ export function FeaturedProducts() {
         ))}
       </div>
 
-      {/* زر عرض المزيد */}
       {products.length >= limit && (
         <div className="text-center mt-8">
           <Button onClick={() => setLimit((prev) => prev + 10)}>
