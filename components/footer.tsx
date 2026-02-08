@@ -16,7 +16,7 @@ export function Footer() {
                   fontFamily: "var(--font-cinzel-decorative)",
                 }}
               >
-                TOLAY
+                MISS
               </span>
             </div>
 
@@ -45,7 +45,7 @@ export function Footer() {
           <p className="text-lg font-amiri mb-4" style={{ color: "#7f5c7e" }}>
             كُل الحب لك ولزيارتك متجرنا
           </p>
-          <p className="text-sm text-muted-foreground">© 2025 TOLAY. جميع الحقوق محفوظة.</p>
+          <p className="text-sm text-muted-foreground">© 2026 Miss Accessories. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </footer>
