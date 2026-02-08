@@ -13,7 +13,7 @@ interface Product {
   image_url: string
 }
 
-export default function FeaturedProducts() {
+export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [limit, setLimit] = useState(10)
   const [loading, setLoading] = useState(true)
