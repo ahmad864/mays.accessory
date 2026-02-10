@@ -12,13 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ShoppingBag, Star, Search, Filter } from "lucide-react"
+import { ShoppingBag, Search, Filter } from "lucide-react"
 import { useCart } from "@/lib/cart-store"
 import { useProducts } from "@/lib/products-store"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
-/* ✅ نفس فئات الصفحة الرئيسية */
 const OFFICIAL_CATEGORIES = [
   "خواتم",
   "أحلاق",
@@ -47,13 +46,10 @@ export default function ProductsPage() {
     }
   }, [searchParams])
 
-  /* ✅ البحث مرتبط فقط بفئات الصفحة الرئيسية (بدون المنتجات المميزة) */
   const filteredProducts = products
-    .filter((product) => product.isSale !== true) // ⭐ هذا هو السطر المهم
+    .filter((product) => product.isSale !== true)
     .filter((product) => {
       const search = searchTerm.trim()
-
-      // 🔍 هل البحث باسم فئة؟
       const isCategorySearch = OFFICIAL_CATEGORIES.includes(search)
 
       if (isCategorySearch) {
@@ -146,7 +142,6 @@ export default function ProductsPage() {
               <SelectItem value="name">الاسم</SelectItem>
               <SelectItem value="price-low">السعر: الأقل</SelectItem>
               <SelectItem value="price-high">السعر: الأعلى</SelectItem>
-              <SelectItem value="rating">التقييم</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -169,16 +164,11 @@ export default function ProductsPage() {
                     {product.category}
                   </Badge>
 
-                  <h3 className="font-semibold mb-1">{product.name}</h3>
-
-                  <div className="flex items-center gap-1 mb-2 text-sm">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    {product.rating}
-                  </div>
+                  <h3 className="font-semibold mb-3">{product.name}</h3>
 
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-[#7f5c7e]">
-                      {product.price} ر.س
+                      ${product.price}
                     </span>
 
                     <Button
