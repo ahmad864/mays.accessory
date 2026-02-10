@@ -5,13 +5,15 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CartDrawer } from "@/components/cart-drawer"
-import { Menu, X, Heart } from "lucide-react"
+import { Menu, X, Heart, Search } from "lucide-react"
 import { SearchBar } from "@/components/search-bar"
 import { useFavorites } from "@/lib/favorites-store"
 import { useAuth } from "@/lib/auth-store"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+
   const { getFavoritesCount } = useFavorites()
   const { isAuthenticated, user, isAdmin } = useAuth()
   const favoritesCount = getFavoritesCount()
@@ -73,10 +75,14 @@ export function Header() {
           {/* ACTIONS */}
           <div className="flex items-center space-x-4">
 
-            {/* 🔍 SEARCH (نفس البحث بدون تعديل) */}
-            <div className="hidden md:block">
-              <SearchBar />
-            </div>
+            {/* 🔍 SEARCH ICON */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSearchOpen((prev) => !prev)}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
 
             {/* ❤️ FAVORITES */}
             <Link href="/account">
@@ -110,6 +116,13 @@ export function Header() {
             </Button>
           </div>
         </div>
+
+        {/* 🔍 SEARCH BAR (يظهر عند الضغط على الأيقونة) */}
+        {isSearchOpen && (
+          <div className="border-t py-4">
+            <SearchBar />
+          </div>
+        )}
 
         {/* MOBILE MENU (بدون بحث) */}
         {isMenuOpen && (
