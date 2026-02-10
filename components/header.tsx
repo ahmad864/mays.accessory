@@ -29,7 +29,7 @@ export function Header() {
 {/* LOGO */}
           <Link
             href="/"
-            className="flex items-center cursor-pointer mr-6 md:mr-10"
+            className="flex items-center cursor-pointer mr-2 md:mr-4"
           >
             <Image
               src="/logo.png"
