@@ -34,9 +34,9 @@ export function Header() {
   <Image
     src="/logo.png"
     alt="MISS Logo"
-    width={280}
-    height={50}
-    className="hover:scale-105 transition-transform duration-200"
+    width={500}
+    height={200}
+    className="h-14 w-auto hover:scale-105 transition-transform duration-200"
     priority
   />
 </Link>
