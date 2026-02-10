@@ -26,20 +26,20 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
 
-          {/* LOGO */}
-<Link
-  href="/"
-  className="flex items-center cursor-pointer ml-12"
->
-  <Image
-    src="/logo.png"
-    alt="MISS Logo"
-    width={600}
-    height={220}
-    className="h-20 w-auto hover:scale-105 transition-transform duration-200"
-    priority
-  />
-</Link>
+{/* LOGO */}
+          <Link
+            href="/"
+            className="flex items-center cursor-pointer mr-6 md:mr-10"
+          >
+            <Image
+              src="/logo.png"
+              alt="MISS Logo"
+              width={210}
+              height={36}
+              className="hover:scale-105 transition-transform duration-200"
+              priority
+            />
+          </Link>
 
           {/* NAV */}
           <nav className="hidden md:flex items-center space-x-8">
