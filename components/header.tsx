@@ -36,11 +36,6 @@ export function Header() {
             />
           </Link>
 
-          {/* SEARCH */}
-          <div className="hidden md:flex flex-1 justify-center mx-8">
-            <SearchBar />
-          </div>
-
           {/* NAV */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-lg font-bold hover:text-[#7f5c7e] transition-colors">
@@ -78,7 +73,12 @@ export function Header() {
           {/* ACTIONS */}
           <div className="flex items-center space-x-4">
 
-            {/* ❤️ FAVORITES — بدون تسجيل دخول */}
+            {/* 🔍 SEARCH (نفس البحث بدون تعديل) */}
+            <div className="hidden md:block">
+              <SearchBar />
+            </div>
+
+            {/* ❤️ FAVORITES */}
             <Link href="/account">
               <Button variant="ghost" size="icon" className="relative">
                 <Heart
@@ -96,7 +96,7 @@ export function Header() {
               </Button>
             </Link>
 
-            {/* 🛒 ORDERS / CART */}
+            {/* 🛒 CART */}
             <CartDrawer />
 
             {/* MOBILE MENU BUTTON */}
@@ -111,10 +111,9 @@ export function Header() {
           </div>
         </div>
 
-        {/* MOBILE MENU */}
+        {/* MOBILE MENU (بدون بحث) */}
         {isMenuOpen && (
           <div className="md:hidden border-t py-4">
-            <SearchBar />
             <nav className="flex flex-col space-y-4 mt-4">
               <Link href="/">الصفحة الرئيسية</Link>
               <Link href="/about">من نحن</Link>
