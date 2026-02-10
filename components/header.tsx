@@ -29,14 +29,14 @@ export function Header() {
           {/* LOGO */}
 <Link
   href="/"
-  className="flex items-center cursor-pointer ml-10"
+  className="flex items-center cursor-pointer ml-12"
 >
   <Image
     src="/logo.png"
     alt="MISS Logo"
-    width={500}
-    height={200}
-    className="h-14 w-auto hover:scale-105 transition-transform duration-200"
+    width={600}
+    height={220}
+    className="h-20 w-auto hover:scale-105 transition-transform duration-200"
     priority
   />
 </Link>
