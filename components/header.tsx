@@ -27,12 +27,15 @@ export function Header() {
         <div className="flex h-20 items-center justify-between">
 
           {/* LOGO */}
-          <Link href="/" className="flex items-center cursor-pointer">
+          <Link
+            href="/"
+            className="flex items-center cursor-pointer mr-4 md:mr-8"
+          >
             <Image
               src="/logo.png"
               alt="MISS Logo"
-              width={180}
-              height={30}
+              width={195}
+              height={34}
               className="hover:scale-105 transition-transform duration-200"
               priority
             />
@@ -80,18 +83,21 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setIsSearchOpen((prev) => !prev)}
+              className="text-[#7f5c7e]"
             >
               <Search className="h-5 w-5" />
             </Button>
 
             {/* ❤️ FAVORITES */}
             <Link href="/account">
-              <Button variant="ghost" size="icon" className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative text-[#7f5c7e]"
+              >
                 <Heart
                   className={`h-5 w-5 ${
-                    favoritesCount > 0
-                      ? "fill-[#7f5c7e] text-[#7f5c7e]"
-                      : ""
+                    favoritesCount > 0 ? "fill-[#7f5c7e]" : ""
                   }`}
                 />
                 {favoritesCount > 0 && (
@@ -103,13 +109,15 @@ export function Header() {
             </Link>
 
             {/* 🛒 CART */}
-            <CartDrawer />
+            <div className="text-[#7f5c7e]">
+              <CartDrawer />
+            </div>
 
             {/* MOBILE MENU BUTTON */}
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden text-[#7f5c7e]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -117,17 +125,17 @@ export function Header() {
           </div>
         </div>
 
-        {/* 🔍 SEARCH BAR (يظهر عند الضغط على الأيقونة) */}
+        {/* 🔍 SEARCH BAR */}
         {isSearchOpen && (
           <div className="border-t py-4">
             <SearchBar />
           </div>
         )}
 
-        {/* MOBILE MENU (بدون بحث) */}
+        {/* MOBILE MENU */}
         {isMenuOpen && (
           <div className="md:hidden border-t py-4">
-            <nav className="flex flex-col space-y-4 mt-4">
+            <nav className="flex flex-col space-y-4 mt-4 text-[#7f5c7e] font-semibold">
               <Link href="/">الصفحة الرئيسية</Link>
               <Link href="/about">من نحن</Link>
               <a href="https://instagram.com" target="_blank">تواصل معنا</a>
