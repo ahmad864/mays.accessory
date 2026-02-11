@@ -13,18 +13,20 @@ export function Footer() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center space-y-8">
           <div className="space-y-4">
-            {/* LOGO IMAGE */}
-            <div className="mx-auto flex justify-center">
-              <Link href="/">
-                <Image
-                  src="/logo.png"
-                  alt="MISS Logo"
-                  width={200}
-                  height={60}
-                  className="h-14 w-auto hover:scale-105 transition-transform duration-200"
-                  priority
-                />
-              </Link>
+            {/* LOGO */}
+          <Link
+            href="/"
+            className="flex items-center cursor-pointer mr-2 md:mr-4"
+          >
+            <Image
+              src="/logo.png"
+              alt="MISS Logo"
+              width={210}
+              height={36}
+              className="hover:scale-105 transition-transform duration-200"
+              priority
+            />
+          </Link>
             </div>
 
             <div className="space-y-2">
