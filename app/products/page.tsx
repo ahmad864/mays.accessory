@@ -166,13 +166,15 @@ export default function ProductsPage() {
 
                   <h3 className="font-semibold mb-3">{product.name}</h3>
 
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-[#7f5c7e]">
+                  {/* ✅ السعر فوق زر أضف للسلة (التعديل الوحيد) */}
+                  <div className="space-y-2">
+                    <span className="block font-bold text-[#7f5c7e] text-lg">
                       ${product.price}
                     </span>
 
                     <Button
                       size="sm"
+                      className="w-full"
                       disabled={product.stock <= 0}
                       onClick={() => addToCart(product)}
                     >
