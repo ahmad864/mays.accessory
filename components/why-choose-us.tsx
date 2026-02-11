@@ -5,7 +5,7 @@ export function WhyChooseUs() {
   const features = [
     {
       icon: Shield,
-      title: "ثقتك بمتجر MISS أولويتنا",
+      title: "الثقة",
       description:
         "نلتزم بتقديم تجربة تسوق آمنة وموثوقة، ونهتم براحتك",
     },
