@@ -14,39 +14,38 @@ export function Footer() {
         <div className="text-center space-y-8">
           <div className="space-y-4">
             {/* LOGO */}
-          <Link
-            href="/"
-            className="flex items-center cursor-pointer mr-2 md:mr-4"
-          >
-            <Image
-              src="/logo.png"
-              alt="MISS Logo"
-              width={210}
-              height={36}
-              className="hover:scale-105 transition-transform duration-200"
-              priority
-            />
-          </Link>
-            </div>
+            <Link
+              href="/"
+              className="flex justify-center items-center cursor-pointer"
+            >
+              <Image
+                src="/logo.png"
+                alt="MISS Logo"
+                width={210}
+                height={36}
+                className="mx-auto hover:scale-105 transition-transform duration-200"
+                priority
+              />
+            </Link>
+          </div>
 
-            <div className="space-y-2">
-              <p
-                className="text-lg font-amiri"
-                style={{ color: "#7f5c7e" }}
-              >
-                حيث تلتقي الأناقة بالجمال
-              </p>
-              <p className="text-sm text-muted-foreground">
-                أوقات العمل: من 10 صباحاً حتى 10 مساءً
-              </p>
-            </div>
+          <div className="space-y-2">
+            <p
+              className="text-lg font-amiri"
+              style={{ color: "#7f5c7e" }}
+            >
+              حيث تلتقي الأناقة بالجمال
+            </p>
+            <p className="text-sm text-muted-foreground">
+              أوقات العمل: من 10 صباحاً حتى 10 مساءً
+            </p>
+          </div>
 
-            {/* SOCIAL ICONS */}
-            <div className="flex items-center justify-center gap-6">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Instagram className="h-4 w-4" style={{ color: "#7f5c7e" }} />
-              </Button>
-            </div>
+          {/* SOCIAL ICONS */}
+          <div className="flex items-center justify-center gap-6">
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Instagram className="h-4 w-4" style={{ color: "#7f5c7e" }} />
+            </Button>
           </div>
         </div>
 
