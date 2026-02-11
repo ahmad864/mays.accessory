@@ -19,7 +19,7 @@ export function Footer() {
               className="flex justify-center items-center cursor-pointer"
             >
               <Image
-                src="/logo.png"
+                src="/logo1.png"
                 alt="MISS Logo"
                 width={210}
                 height={36}
