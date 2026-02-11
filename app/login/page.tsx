@@ -38,8 +38,8 @@ export default function LoginPage() {
         )}
         <Card>
           <CardHeader>
-            <CardTitle>تسجيل دخول الأدمن</CardTitle>
-            <CardDescription>أدخل بريد الأدمن وكلمة المرور للوصول للوحة التحكم</CardDescription>
+            <CardTitle>تسجيل دخول </CardTitle>
+            <CardDescription>أدخل بريد الالكتروني وكلمة المرور </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
